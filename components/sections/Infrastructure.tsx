@@ -32,7 +32,7 @@ export const Infrastructure = ({
                     className="w-full h-full bg-black border-[0.25rem] border-white/20 p-12 flex flex-col relative overflow-hidden group min-h-[25rem] cursor-pointer hover:border-accent transition-colors duration-500"
                 >
                     <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-opacity duration-700 grayscale">
-                        <source src="https://cdn.coverr.co/videos/coverr-computing-code-on-computer-screen-5226/1080p.mp4" type="video/mp4" />
+                        <source src="https://storage.googleapis.com/neordinary/01_1.webm" type="video/webm" />
                     </video>
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
                     <div className="relative z-20 flex flex-col h-full uppercase">
