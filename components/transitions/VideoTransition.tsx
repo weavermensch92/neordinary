@@ -33,7 +33,7 @@ export const VideoTransition: React.FC<VideoTransitionProps> = ({
             }
 
             const videoNumber = targetIndex.toString().padStart(2, '0');
-            setVideoSrc(`https://storage.googleapis.com/neordinary/${videoNumber}_1.webm`);
+            setVideoSrc(`https://storage.googleapis.com/neordinary/neordinary_studio_proposal/public/${videoNumber}_1.webm`);
             setShowVideo(true);
             hasTriggeredMidpoint.current = false;
 

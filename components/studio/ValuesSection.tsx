@@ -148,7 +148,7 @@ export const ValuesSection: React.FC = () => {
                     >
                         <div className="w-full h-full overflow-hidden relative bg-black">
                             <video
-                                src="https://storage.googleapis.com/neordinary/02_1.webm"
+                                src="https://storage.googleapis.com/neordinary/neordinary_studio_proposal/public/02_1.webm"
                                 autoPlay
                                 muted
                                 loop
