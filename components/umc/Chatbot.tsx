@@ -1,29 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, Loader2, Bot } from 'lucide-react';
-import { GoogleGenAI, Type, FunctionDeclaration, Chat } from '@google/genai';
-import { UMC_KNOWLEDGE_BASE } from './lib/knowledge';
-
-const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
-const ai = new GoogleGenAI({ apiKey });
-
-const navigateToProjectDeclaration: FunctionDeclaration = {
-  name: "navigateToProject",
-  description: "Navigate the 3D world map to a specific project and open its details.",
-  parameters: {
-    type: Type.OBJECT,
-    properties: {
-      projectId: {
-        type: Type.STRING,
-        description: "The ID of the project to navigate to.",
-      },
-      reason: {
-        type: Type.STRING,
-        description: "A short explanation of why this project is being recommended.",
-      }
-    },
-    required: ["projectId", "reason"],
-  },
-};
 
 interface ChatbotProps {
   projects: { id: string; name: string; description: string; gen: string }[];
@@ -37,74 +13,54 @@ export const Chatbot: React.FC<ChatbotProps> = ({ projects, onNavigate }) => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const chatRef = useRef<Chat | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const initChat = () => {
-    // Limit project list to avoid token limits if it's too large, but 260 items is fine for Gemini 1.5/2.0 Flash.
-    const projectList = projects.map(p => `- [${p.gen}] ${p.name}: ${p.description} (ID: ${p.id})`).join('\n');
-
-    chatRef.current = ai.chats.create({
-      model: "gemini-3-flash-preview",
-      config: {
-        systemInstruction: `당신은 UMC (University MakeUs Challenge) 프로젝트 전시회의 친절한 AI 어시스턴트입니다.
-UMC에 대한 소개를 제공하고, 사용자의 관심사나 키워드에 맞는 5, 6, 7, 8기 프로젝트를 추천해줍니다.
-
-[중요 규칙 - 절대 준수]
-1. 반드시 아래 제공된 [현재 전시 중인 프로젝트 목록]에 존재하는 프로젝트만 언급하고 추천하십시오.
-2. 목록에 없는 프로젝트를 임의로 지어내거나(Hallucination) 상상하여 답변하지 마십시오.
-3. 사용자가 찾는 프로젝트가 목록에 없다면, "죄송하지만 해당 프로젝트는 현재 전시 명단에 포함되어 있지 않습니다."라고 정중히 안내하십시오.
-4. 프로젝트 추천 시에는 반드시 프로젝트 명칭과 기수를 정확히 언급하십시오.
-
-[UMC 사전 지식]
-${UMC_KNOWLEDGE_BASE}
-
-[현재 전시 중인 프로젝트 목록]
-${projectList}
-
-사용자가 특정 프로젝트를 보고 싶어하거나 추천한 프로젝트로 이동하길 원하면, 반드시 'navigateToProject' 도구를 사용하여 해당 프로젝트의 ID를 전달하세요.
-답변은 한국어로 자연스럽고 친절하게 작성하세요.`,
-        tools: [{ functionDeclarations: [navigateToProjectDeclaration] }],
-      },
-    });
-  };
-
   const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMessage = input.trim();
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+    const currentMessages = [...messages];
+    setMessages([...currentMessages, { role: 'user', text: userMessage }]);
     setIsLoading(true);
 
-    if (!chatRef.current) {
-      initChat();
-    }
+    // Prepare project list summary
+    const projectList = projects.map(p => `- [${p.gen}] ${p.name}: ${p.description} (ID: ${p.id})`).join('\n');
 
     try {
-      const response = await chatRef.current!.sendMessage({ message: userMessage });
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          history: currentMessages, // Send previous messages as context
+          projectList
+        })
+      });
 
-      let modelText = response.text || '';
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
 
-      // Check for function calls
-      if (response.functionCalls && response.functionCalls.length > 0) {
-        for (const call of response.functionCalls) {
+      const data = await response.json();
+      let modelText = data.text || '';
+
+      if (data.functionCalls && data.functionCalls.length > 0) {
+        for (const call of data.functionCalls) {
           if (call.name === 'navigateToProject') {
-            const args = call.args as any;
-            const projectId = args.projectId;
-            const reason = args.reason;
-
-            if (reason) {
-              modelText += `\n\n${reason}`;
+            if (call.reason) {
+              modelText += `\n\n${call.reason}`;
             }
             modelText += `\n\n(프로젝트로 이동합니다!)`;
 
-            // Trigger navigation
-            onNavigate(projectId);
+            // Trigger navigation in the map
+            onNavigate(call.projectId);
           }
         }
       }
@@ -112,7 +68,7 @@ ${projectList}
       setMessages(prev => [...prev, { role: 'model', text: modelText }]);
     } catch (error) {
       console.error("Chat error:", error);
-      setMessages(prev => [...prev, { role: 'model', text: '죄송합니다. 오류가 발생했습니다. 다시 시도해주세요.' }]);
+      setMessages(prev => [...prev, { role: 'model', text: '죄송합니다. 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }]);
     } finally {
       setIsLoading(false);
     }
