@@ -101,10 +101,10 @@ export const TeamSection: React.FC = () => {
                                     </h3>
                                     <div className="w-12 h-1 bg-brand-red mb-6" />
                                     <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-brand-red mb-6">
-                                        <TextReveal speed="fast" mode="sync">{member.role}</TextReveal>
+                                        <TextReveal speed="fast" mode="word">{member.role}</TextReveal>
                                     </p>
                                     <p className="font-sans text-base md:text-lg font-light uppercase leading-relaxed max-w-sm mb-8">
-                                        <TextReveal speed="fast" mode="sync">{member.desc}</TextReveal>
+                                        <TextReveal speed="fast" mode="word">{member.desc}</TextReveal>
                                     </p>
                                 </div>
 

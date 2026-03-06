@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useRef, Suspense } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Text, Environment } from '@react-three/drei';

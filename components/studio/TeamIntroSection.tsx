@@ -43,12 +43,12 @@ export const TeamIntroSection: React.FC = () => {
                 <div className="w-full max-w-[96%] mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-32 font-sans text-lg md:text-xl font-light uppercase border-t border-brand-red/10 pt-12 md:pt-24 max-w-6xl">
                     <div>
                         <p className="leading-tight">
-                            <TextReveal delay={0} glitchDelay={0} speed="fast" mode="sync">Sometimes NE(O)RDS are one. Sometimes NE(O)RDS are many. A global collective of senior thinkers and makers, united by purpose and shared principles.</TextReveal>
+                            <TextReveal delay={0} glitchDelay={0} speed="fast" mode="word">Sometimes NE(O)RDS are one. Sometimes NE(O)RDS are many. A global collective of senior thinkers and makers, united by purpose and shared principles.</TextReveal>
                         </p>
                     </div>
                     <div className="md:mt-12">
                         <p className="leading-tight">
-                            <TextReveal delay={0} glitchDelay={0.2} speed="fast" mode="sync">What brings us together is a deep creative sensibility, a love for collaboration, and the courage to show up human — with empathy, curiosity, and care.</TextReveal>
+                            <TextReveal delay={0} glitchDelay={0.2} speed="fast" mode="word">What brings us together is a deep creative sensibility, a love for collaboration, and the courage to show up human — with empathy, curiosity, and care.</TextReveal>
                         </p>
                     </div>
                 </div>
