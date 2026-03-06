@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CustomCursor } from './CustomCursor';
+import { Navigation } from './Navigation';
 import { LoadingSequence } from './LoadingSequence';
 
 // UMC OS Components (imported from the newly copied files)
@@ -261,6 +262,13 @@ export const UMCOsContentWrapper: React.FC<UMCOsContentWrapperProps> = ({ onClos
                 onClick={(e) => e.stopPropagation()}
             >
                 <CustomCursor />
+
+                <Navigation
+                    show={loadingComplete && !isExiting}
+                    containerRef={containerRef}
+                    onClose={handleClose}
+                    onMinimize={onMinimize}
+                />
 
                 <div className="relative w-full h-full overflow-hidden">
                     {!loadingComplete && (
