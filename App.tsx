@@ -10,6 +10,8 @@ import { Evaluation } from './components/sections/Evaluation';
 import { Deployment } from './components/sections/Deployment';
 import { Bridge } from './components/sections/Bridge';
 import { Proposal } from './components/sections/Proposal';
+import { UMCDataProvider } from './components/umc/lib/UMCDataContext';
+
 const App: React.FC = () => {
   const boundaryAccumulator = useRef(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -264,67 +266,69 @@ const App: React.FC = () => {
   }, [activeSectionIndex]);
 
   return (
-    <div className="relative w-full h-full bg-[#050505] overflow-hidden">
-      {/* 3D Scene Background */}
-      <div className="absolute inset-0 z-0">
-        <Experience scrollOffset={scrollOffset} paused={isExperiencePaused} />
+    <UMCDataProvider>
+      <div className="relative w-full h-full bg-[#050505] overflow-hidden">
+        {/* 3D Scene Background */}
+        <div className="absolute inset-0 z-0">
+          <Experience scrollOffset={scrollOffset} paused={isExperiencePaused} />
+        </div>
+
+        {/* Fixed UI Overlay */}
+        <div className="absolute inset-0 z-50 pointer-events-none">
+          <Overlay onNavigate={handleNavClick} activeSectionIndex={activeSectionIndex} />
+        </div>
+
+        {/* WebM Video Transition UI */}
+        <VideoTransition
+          isActive={isTransitioning}
+          targetIndex={transitionTargetIndex}
+          onMidpoint={handleTransitionMidpoint}
+          onComplete={handleTransitionComplete}
+        />
+
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className={`absolute inset-0 z-20 flex overflow-hidden overflow-y-hidden snap-x snap-mandatory scroll-container no-scrollbar`}
+        >
+          {sections.map((section: any, index) => {
+            const Section = section.component;
+            return (
+              <div
+                key={index}
+                className="w-screen h-screen flex-shrink-0 snap-start snap-always overflow-y-auto overflow-x-hidden scroll-area no-scrollbar"
+              >
+                <Section
+                  onNavigate={handleNavClick}
+                  onTogglePause={setIsExperiencePaused}
+                  isActive={activeSectionIndex === index}
+                  isExiting={activeSectionIndex === index && isExiting}
+                  exitDirection={exitDirection}
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        <style>{`
+          .no-scrollbar::-webkit-scrollbar { display: none; }
+          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+          
+          .stagger-item {
+            opacity: 0;
+            transform: translateY(10vh); 
+            transition: none;
+            will-change: transform, opacity;
+          }
+          
+          .phase-5-active .stagger-item {
+            opacity: 1;
+            transform: translateY(0);
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease-out;
+          }
+        `}</style>
       </div>
-
-      {/* Fixed UI Overlay */}
-      <div className="absolute inset-0 z-50 pointer-events-none">
-        <Overlay onNavigate={handleNavClick} activeSectionIndex={activeSectionIndex} />
-      </div>
-
-      {/* WebM Video Transition UI */}
-      <VideoTransition
-        isActive={isTransitioning}
-        targetIndex={transitionTargetIndex}
-        onMidpoint={handleTransitionMidpoint}
-        onComplete={handleTransitionComplete}
-      />
-
-      <div
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className={`absolute inset-0 z-20 flex overflow-hidden overflow-y-hidden snap-x snap-mandatory scroll-container no-scrollbar`}
-      >
-        {sections.map((section: any, index) => {
-          const Section = section.component;
-          return (
-            <div
-              key={index}
-              className="w-screen h-screen flex-shrink-0 snap-start snap-always overflow-y-auto overflow-x-hidden scroll-area no-scrollbar"
-            >
-              <Section
-                onNavigate={handleNavClick}
-                onTogglePause={setIsExperiencePaused}
-                isActive={activeSectionIndex === index}
-                isExiting={activeSectionIndex === index && isExiting}
-                exitDirection={exitDirection}
-              />
-            </div>
-          );
-        })}
-      </div>
-
-      <style>{`
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .stagger-item {
-          opacity: 0;
-          transform: translateY(10vh); 
-          transition: none;
-          will-change: transform, opacity;
-        }
-        
-        .phase-5-active .stagger-item {
-          opacity: 1;
-          transform: translateY(0);
-          transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease-out;
-        }
-      `}</style>
-    </div>
+    </UMCDataProvider>
   );
 };
 

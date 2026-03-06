@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 import { Users, Building2, MapPin, Database, Zap, Globe, ArrowUpRight } from 'lucide-react';
 import { StudioContentWrapper } from '../studio/StudioContentWrapper';
+import { UMCOsContentWrapper } from '../studio/UMCOsContentWrapper';
 
 export const Infrastructure = ({
     onNavigate,
@@ -22,6 +23,8 @@ export const Infrastructure = ({
     const [hasVisitedStudio, setHasVisitedStudio] = useState(false);
     const [manualOpen, setManualOpen] = useState(false);
     const [isStudioMinimized, setIsStudioMinimized] = useState(false);
+    const [isUmcOsOpen, setIsUmcOsOpen] = useState(false);
+    const [isUmcOsMinimized, setIsUmcOsMinimized] = useState(false);
 
     const gridItems = [
         {
@@ -31,9 +34,6 @@ export const Infrastructure = ({
                     onClick={() => setManualOpen(true)}
                     className="w-full h-full bg-black border-[0.25rem] border-white/20 p-12 flex flex-col relative overflow-hidden group min-h-[25rem] cursor-pointer hover:border-accent transition-colors duration-500"
                 >
-                    <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-opacity duration-700 grayscale">
-                        <source src="https://storage.googleapis.com/neordinary/neordinary_studio_proposal/public/01_1.webm" type="video/webm" />
-                    </video>
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
                     <div className="relative z-20 flex flex-col h-full uppercase">
                         <div className="flex items-center gap-4 mb-4">
@@ -90,7 +90,10 @@ export const Infrastructure = ({
         {
             span: "md:col-span-1 md:row-span-1",
             content: (
-                <div className="w-full h-full bg-[#0A0A0A] border-4 border-white/5 p-10 flex flex-col items-center justify-center text-center group relative overflow-hidden uppercase hover:bg-accent hover:text-black transition-all duration-700">
+                <div
+                    onClick={() => setIsUmcOsOpen(true)}
+                    className="w-full h-full bg-[#0A0A0A] border-4 border-white/5 p-10 flex flex-col items-center justify-center text-center group relative overflow-hidden uppercase hover:bg-accent hover:text-black transition-all duration-700 cursor-pointer"
+                >
                     <div className="absolute inset-0 border-r-[1rem] border-accent/20" />
                     <Zap className="w-12 h-12 lg:w-16 lg:h-16 text-accent mb-6 relative z-10 group-hover:text-black transition-colors" />
                     <div className="text-4xl lg:text-5xl font-black text-white mb-2 tracking-tighter leading-[0.8] relative z-10 group-hover:text-black transition-colors">UMC</div>
@@ -212,10 +215,11 @@ export const Infrastructure = ({
 
     const isStudioOpen = manualOpen;
     const isStudioActive = isStudioOpen && !isStudioMinimized;
+    const isUmcOsActive = isUmcOsOpen && !isUmcOsMinimized;
 
     useEffect(() => {
-        if (onTogglePause) onTogglePause(isStudioActive);
-    }, [isStudioActive, onTogglePause]);
+        if (onTogglePause) onTogglePause(isStudioActive || isUmcOsActive);
+    }, [isStudioActive, isUmcOsActive, onTogglePause]);
 
     const handleFooterReached = (isScrollExit = false) => {
         setHasVisitedStudio(true);
@@ -336,6 +340,30 @@ export const Infrastructure = ({
                     onFooterReached={handleFooterReached}
                     onMinimize={() => setIsStudioMinimized(true)}
                 />,
+                document.body
+            )}
+
+            {/* UMC OS Content Modal */}
+            {isUmcOsActive && createPortal(
+                <UMCOsContentWrapper
+                    onClose={() => setIsUmcOsOpen(false)}
+                    onMinimize={() => setIsUmcOsMinimized(true)}
+                />,
+                document.body
+            )}
+
+            {/* Persistent UMC OS Widget (Always accessible when not active) */}
+            {!isUmcOsActive && createPortal(
+                <button
+                    onClick={() => {
+                        setIsUmcOsMinimized(false);
+                        setIsUmcOsOpen(true);
+                    }}
+                    className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] bg-white text-black px-6 py-4 font-black uppercase tracking-[0.3em] border-[8px] border-black hover:bg-black hover:text-white transition-colors duration-300 shadow-[0.75rem_0.75rem_0_0_rgba(59,130,246,1)] flex items-center gap-4 group cursor-pointer pointer-events-auto"
+                >
+                    <div className="w-3 h-3 bg-blue-500" />
+                    <span className="group-hover:text-blue-500 transition-colors mt-1">UMC PROJECTS</span>
+                </button>,
                 document.body
             )}
 

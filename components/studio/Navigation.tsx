@@ -187,9 +187,12 @@ export const Navigation: React.FC<NavigationProps> = ({ show, containerRef, onCl
                   Icon Block 
               */}
           <div className="">
-            <a
-              href="#footer"
-              className="flex items-center justify-center bg-transparent group"
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                onMinimize?.();
+              }}
+              className="flex items-center justify-center bg-transparent group cursor-pointer focus:outline-none"
             >
               <svg
                 viewBox="0 0 40 40"
@@ -198,7 +201,7 @@ export const Navigation: React.FC<NavigationProps> = ({ show, containerRef, onCl
                 <path d="M25.338 26.973c-.232.203-.58.232-.811 0l-8.2-8.2c-.203-.202-.464-.058-.464.174v4.376c0 .376-.203.58-.58.58h-.695a.563.563 0 0 1-.58-.58v-7.62c0-.349.261-.58.58-.58h7.65c.318 0 .58.231.58.58v.666c0 .347-.262.608-.61.608h-4.346c-.26 0-.376.232-.173.435l8.2 8.229c.231.231.231.608 0 .81l-.551.522Z"></path>
                 <path d="M2.42 20.06c0 9.722 7.882 17.603 17.603 17.603 9.722 0 17.603-7.881 17.603-17.602 0-9.722-7.881-17.603-17.603-17.603-9.721 0-17.602 7.881-17.602 17.602Zm-1.81 0C.61 9.34 9.302.648 20.023.648c10.722 0 19.414 8.692 19.414 19.414 0 10.721-8.692 19.413-19.414 19.413C9.302 39.474.61 30.782.61 20.06Z"></path>
               </svg>
-            </a>
+            </button>
           </div>
         </motion.div>
       </div>
