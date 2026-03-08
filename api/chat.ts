@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-// Standalone version to avoid Vercel bundling issues
+// Standalone version to avoid Vercel bundling issues (Force redeploy to sync env vars)
 const UMC_KNOWLEDGE_BASE_LOCAL = `
 UMC (University MakeUs Challenge)는 대학생들의 IT 역량 강화를 위한 실무형 프로젝트 연합 동아리입니다. 
 주로 5기, 6기, 7기, 8기 등의 기수별로 운영되며, 매 기수마다 수십 개의 혁신적인 앱/웹 서비스 프로젝트가 탄생합니다.

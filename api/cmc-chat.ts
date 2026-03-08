@@ -25,6 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
     try {
+        // Force redeploy to apply new Vercel Environment Variables
         const { message, history, projectList, action } = req.body;
 
         if (!message && action !== 'welcome') {
