@@ -216,7 +216,7 @@ export const UMCOsContentWrapper: React.FC<UMCOsContentWrapperProps> = ({ onClos
                 setPageContent(null);
 
                 try {
-                    const response = await fetch(`/api/notion/blocks/${item.id}`);
+                    const response = await fetch(`/api/notion?action=blocks&id=${item.id}`);
                     if (!response.ok) throw new Error("Failed to fetch blocks");
                     const data = await response.json();
                     setPageContent(data.results || []);
