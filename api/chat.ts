@@ -1,3 +1,5 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+
 // Standalone version to avoid Vercel bundling issues with relative imports outside of api/
 const UMC_KNOWLEDGE_BASE_LOCAL = `
 UMC (University MakeUs Challenge)는 대학생들의 IT 역량 강화를 위한 실무형 프로젝트 연합 동아리입니다. 
