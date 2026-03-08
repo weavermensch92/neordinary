@@ -1111,11 +1111,14 @@ export const sendMessageToGemini = async (
             action: 'chat'
         })
     });
-    if (!response.ok) throw new Error('API request failed');
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return { error: errorData.details || errorData.error || `HTTP_${response.status}` };
+    }
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini API Error:", error);
-    throw error;
+    return { error: error.message || "CONNECTION_FAILED" };
   }
 };
 
@@ -1135,7 +1138,13 @@ export const generateWelcomeMessage = async () => {
             action: 'welcome'
         })
     });
-    if (!response.ok) throw new Error('API request failed');
+    
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Welcome message error:", errorData);
+        return "SYSTEM ONLINE. ARCHIVE DATA LOADED. AWAITING COMMAND.";
+    }
+    
     const data = await response.json();
     return data.text || "SYSTEM ONLINE. ARCHIVE DATA LOADED.";
   } catch (error) {
