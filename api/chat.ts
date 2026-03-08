@@ -64,7 +64,7 @@ ${projectList || '목록 로딩 중...'}
         }));
         contents.push({ role: 'user', parts: [{ text: message }] });
 
-        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const targetUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
         
         const apiResponse = await fetch(targetUrl, {
             method: 'POST',
