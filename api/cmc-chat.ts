@@ -1,36 +1,12 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { GoogleGenAI, Type, FunctionDeclaration } from '@google/genai';
-
-const filterToolDeclaration: FunctionDeclaration = {
-  name: 'filter_projects',
-  description: 'Filter the project list based on a keyword or topic (e.g., "finance", "health", "17th cohort").',
-  parameters: {
-    type: Type.OBJECT,
-    properties: {
-      keyword: {
-        type: Type.STRING,
-        description: 'The keyword to filter projects by.',
-      },
-    },
-    required: ['keyword'],
-  },
-};
-
-const resetFilterToolDeclaration: FunctionDeclaration = {
-  name: 'reset_filter',
-  description: 'Reset the project filter to show all projects.',
-  parameters: {
-    type: Type.OBJECT,
-    properties: {},
-  },
-};
+// Standalone CMC AI handler
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     const apiKey = process.env.VITE_CMC_GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
         return res.status(500).json({ 
-            error: 'VITE_CMC_GEMINI_API_KEY is missing in Vercel environment. Please check your project settings and Redeploy.' 
+            error: 'VITE_CMC_GEMINI_API_KEY_NOT_FOUND',
+            details: 'Required API Key is missing in Vercel environment. Check your environment variables and Redeploy.'
         });
     }
 
@@ -54,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         const { message, history, projectList, action } = req.body;
 
-        if (!message) {
+        if (!message && action !== 'welcome') {
             return res.status(400).json({ error: 'Message is required' });
         }
 
@@ -75,8 +51,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             });
 
             if (!apiResponse.ok) {
-                const errorData = await apiResponse.json();
-                throw new Error(errorData.error?.message || `Gemini API Error: ${apiResponse.status}`);
+                const errBody = await apiResponse.json().catch(() => ({}));
+                throw new Error(errBody.error?.message || `GEMINI_HTTP_${apiResponse.status}`);
             }
 
             const data = await apiResponse.json() as any;
@@ -126,12 +102,15 @@ ${projectList || '목록 로딩 중...'}
         });
 
         if (!apiResponse.ok) {
-            const errorData = await apiResponse.json();
-            throw new Error(errorData.error?.message || `Gemini API Error: ${apiResponse.status}`);
+            const errBody = await apiResponse.json().catch(() => ({}));
+            throw new Error(errBody.error?.message || `GEMINI_HTTP_${apiResponse.status}`);
         }
 
         const data = await apiResponse.json() as any;
         const candidate = data.candidates?.[0];
+        
+        if (!candidate) throw new Error('EMPTY_CANDIDATE');
+
         const modelText = candidate?.content?.parts?.find((p: any) => p.text)?.text || "";
         const calls = candidate?.content?.parts?.filter((p: any) => p.functionCall);
         const functionCalls = (calls || []).map((c: any) => ({
@@ -147,7 +126,8 @@ ${projectList || '목록 로딩 중...'}
     } catch (error: any) {
         console.error('Gemini API Proxy Error:', error);
         return res.status(500).json({ 
-            error: `CMC_SERVERLESS_FETCH_FAILED: ${error.message || 'Unknown Error'}.` 
+            error: 'CMC_SERVERLESS_INTERNAL_ERROR',
+            details: error.message || 'Unknown server error'
         });
     }
 }

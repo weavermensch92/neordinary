@@ -1,33 +1,17 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { GoogleGenAI, Type, FunctionDeclaration } from '@google/genai';
-// Use require or dynamic import if direct import fails in Vercel, but direct import usually works for TS
-import { UMC_KNOWLEDGE_BASE } from '../components/umc/lib/knowledge';
-
-const navigateToProjectDeclaration: FunctionDeclaration = {
-    name: "navigateToProject",
-    description: "Navigate the 3D world map to a specific project and open its details.",
-    parameters: {
-        type: Type.OBJECT,
-        properties: {
-            projectId: {
-                type: Type.STRING,
-                description: "The ID of the project to navigate to.",
-            },
-            reason: {
-                type: Type.STRING,
-                description: "A short explanation of why this project is being recommended.",
-            }
-        },
-        required: ["projectId", "reason"],
-    },
-};
+// Standalone version to avoid Vercel bundling issues with relative imports outside of api/
+const UMC_KNOWLEDGE_BASE_LOCAL = `
+UMC (University MakeUs Challenge)는 대학생들의 IT 역량 강화를 위한 실무형 프로젝트 연합 동아리입니다. 
+주로 5기, 6기, 7기, 8기 등의 기수별로 운영되며, 매 기수마다 수십 개의 혁신적인 앱/웹 서비스 프로젝트가 탄생합니다.
+전시회는 이러한 프로젝트들의 결과물을 대중에게 선보이고, 개발자들이 서로의 기술을 공유하는 축제의 장입니다.
+`;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
         return res.status(500).json({ 
-            error: 'VITE_GEMINI_API_KEY is missing in Vercel environment. Please check your project settings and Redeploy.' 
+            error: 'VITE_GEMINI_API_KEY_NOT_FOUND',
+            details: 'VITE_GEMINI_API_KEY is missing in Vercel environment. Please Redeploy after checking Settings > Environment Variables.' 
         });
     }
 
@@ -60,8 +44,11 @@ UMC에 대한 소개를 제공하고, 사용자의 관심사나 키워드에 맞
 
 [중요 규칙 - 절대 준수]
 1. 반드시 제공된 [현재 전시 중인 프로젝트 목록]에 존재하는 프로젝트만 언급하고 추천하십시오.
-2. 목록에 없는 프로젝트를 임의로 지어내지 마십시오.
+2. 목록에 없는 프로젝트를 임의로 지어내지 마십시오. (Hallucination 금지)
 3. 추천 시에는 반드시 프로젝트 명칭과 기수를 정확히 언급하십시오.
+
+[UMC 사전 지식]
+${UMC_KNOWLEDGE_BASE_LOCAL}
 
 [현재 전시 중인 프로젝트 목록]
 ${projectList || '목록 로딩 중...'}
@@ -103,12 +90,17 @@ ${projectList || '목록 로딩 중...'}
         });
 
         if (!apiResponse.ok) {
-            const errorData = await apiResponse.json();
-            throw new Error(errorData.error?.message || `Gemini API Error: ${apiResponse.status}`);
+            const errorBody = await apiResponse.json().catch(() => ({}));
+            throw new Error(errorBody.error?.message || `GEMINI_HTTP_${apiResponse.status}`);
         }
 
         const data = await apiResponse.json() as any;
         const candidate = data.candidates?.[0];
+        
+        if (!candidate) {
+            throw new Error('EMTPY_CANDIDATES');
+        }
+
         const modelText = candidate?.content?.parts?.find((p: any) => p.text)?.text || "";
         const calls = candidate?.content?.parts?.filter((p: any) => p.functionCall);
         const functionCalls = (calls || []).map((c: any) => ({
@@ -125,7 +117,8 @@ ${projectList || '목록 로딩 중...'}
     } catch (error: any) {
         console.error('Gemini API Proxy Error:', error);
         return res.status(500).json({ 
-            error: `SERVERLESS_FETCH_FAILED: ${error.message || 'Unknown Error'}.` 
+            error: 'SERVERLESS_INTERNAL_ERROR',
+            details: error.message || 'Unknown server error'
         });
     }
 }

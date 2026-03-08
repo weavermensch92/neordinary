@@ -45,13 +45,14 @@ export const Chatbot: React.FC<ChatbotProps> = ({ projects, onNavigate }) => {
       });
 
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.details || errorData.error || `HTTP_${response.status}`);
       }
 
       const data = await response.json();
       
       if (data.error) {
-          throw new Error(data.error);
+          throw new Error(data.details || data.error);
       }
 
       let modelText = data.text || '';
