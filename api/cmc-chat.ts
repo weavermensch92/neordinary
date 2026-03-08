@@ -1,15 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // Standalone CMC AI handler
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    const rawKey = process.env.VITE_CMC_GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    const rawKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
     const apiKey = rawKey?.trim();
 
     if (!apiKey) {
         return res.status(500).json({ 
-            error: 'VITE_CMC_GEMINI_API_KEY_NOT_FOUND',
-            details: 'Required API Key is missing in Vercel environment. Check your environment variables and Redeploy.'
+            error: 'OPENAI_API_KEY_NOT_FOUND',
+            details: 'VITE_OPENAI_API_KEY is missing. Please check your environment variables.' 
         });
     }
 
@@ -19,16 +18,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
     res.setHeader(
         'Access-Control-Allow-Headers',
-        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, x-goog-api-key'
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
     );
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
-
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
-    }
+    if (req.method === 'OPTIONS') return res.status(200).end();
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
     try {
         const { message, history, projectList, action } = req.body;
@@ -37,39 +31,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        // v1 (Stable) endpoint requires snake_case field names
-        const targetUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent`;
+        const openaiUrl = 'https://api.openai.com/v1/chat/completions';
 
         if (action === 'welcome') {
-            const systemInstruction = `당신은 CMC 아카이브의 AI 큐레이터입니다.
+            const systemContent = `당신은 CMC 아카이브의 AI 큐레이터입니다.
 미래지향적이고 간략한 시스템 현황 보고서를 제공하고 사용자를 환영하세요.
 최대 2문장으로 작성하십시오. 아카이브 데이터 로드 완료를 보고하세요.`;
 
-            const apiResponse = await fetch(targetUrl, {
+            const response = await fetch(openaiUrl, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
-                    'x-goog-api-key': apiKey
+                    'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    contents: [{ role: 'user', parts: [{ text: "SYSTEM_INIT_SEQUENCE_START" }] }],
-                    system_instruction: { parts: [{ text: systemInstruction }] }
+                    model: 'gpt-4o-mini',
+                    messages: [
+                        { role: 'system', content: systemContent },
+                        { role: 'user', content: 'SYSTEM_INIT_SEQUENCE_START' }
+                    ]
                 })
             });
 
-            if (!apiResponse.ok) {
-                const errBody = await apiResponse.json().catch(() => ({}));
-                throw new Error(errBody.error?.message || `WELCOME_FETCH_ERROR_${apiResponse.status}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || `WELCOME_HTTP_${response.status}`);
             }
 
-            const data = await apiResponse.json() as any;
+            const data = await response.json();
             return res.status(200).json({
-                text: data.candidates?.[0]?.content?.parts?.[0]?.text || "SYSTEM READY.",
+                text: data.choices?.[0]?.message?.content || "SYSTEM READY.",
                 functionCalls: []
             });
         }
 
-        const systemInstruction = `당신은 CMC(Central Makeus Challenge) 아카이브의 AI 큐레이터입니다.
+        const systemContent = `당신은 CMC(Central MakeUs Challenge) 아카이브의 전문 AI 큐레이터입니다.
 3D IT 프로젝트 아카이브를 탐색하는 사용자를 돕는 것이 임무입니다.
 
 [프로젝트 목록 컨텍스트]
@@ -80,56 +76,69 @@ ${projectList || '목록 로딩 중...'}
 2. 초기화 요청 시 'reset_filter' 도구를 사용하세요.
 한국어로 간결하고 전문적이며 미래지향적인 톤을 유지하세요.`;
 
-        const contents = (history || []).map((msg: any) => ({
-            role: msg.role === 'model' ? 'model' : 'user',
-            parts: Array.isArray(msg.parts) ? msg.parts : [{ text: msg.text || '' }]
-        }));
-        contents.push({ role: 'user', parts: [{ text: message }] });
+        const messages = [
+            { role: 'system', content: systemContent },
+            ...(history || []).map((msg: any) => ({
+                role: msg.role === 'model' ? 'assistant' : 'user',
+                content: typeof msg.text === 'string' ? msg.text : (msg.parts?.[0]?.text || '')
+            })),
+            { role: 'user', content: message }
+        ];
 
-        const apiResponse = await fetch(targetUrl, {
+        const response = await fetch(openaiUrl, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
+                'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                contents,
-                system_instruction: { parts: [{ text: systemInstruction }] },
-                tools: [{
-                    function_declarations: [
-                        {
+                model: 'gpt-4o-mini',
+                messages,
+                tools: [
+                    {
+                        type: 'function',
+                        function: {
                             name: 'filter_projects',
                             description: 'Filter projects by keyword',
-                            parameters: { type: 'OBJECT', properties: { keyword: { type: 'STRING' } }, required: ['keyword'] }
-                        },
-                        {
-                            name: 'reset_filter',
-                            description: 'Reset project filter'
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    keyword: { type: 'string', description: 'Keyword to filter projects' }
+                                },
+                                required: ['keyword']
+                            }
                         }
-                    ]
-                }]
+                    },
+                    {
+                        type: 'function',
+                        function: {
+                            name: 'reset_filter',
+                            description: 'Reset project filter to show all'
+                        }
+                    }
+                ],
+                tool_choice: 'auto'
             })
         });
 
-        if (!apiResponse.ok) {
-            const errBody = await apiResponse.json().catch(() => ({}));
-            throw new Error(errBody.error?.message || `GEMINI_HTTP_${apiResponse.status}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || `CMC_HTTP_${response.status}`);
         }
 
-        const data = await apiResponse.json() as any;
-        const candidate = data.candidates?.[0];
+        const data = await response.json();
+        const assistantMessage = data.choices?.[0]?.message;
         
-        if (!candidate) throw new Error('EMPTY_CANDIDATE');
+        if (!assistantMessage) throw new Error('EMPTY_OPENAI_RESPONSE');
 
-        const modelParts = candidate.content?.parts || [];
-        const modelText = modelParts.find((p: any) => p.text)?.text || "";
-        const callNodes = modelParts.filter((p: any) => p.functionCall || p.function_call);
+        const modelText = assistantMessage.content || "";
+        const toolCalls = assistantMessage.tool_calls || [];
         
-        const functionCalls = (callNodes || []).map((c: any) => {
-            const fc = c.functionCall || c.function_call;
+        const functionCalls = toolCalls.map((tc: any) => {
+            const args = tc.function.arguments ? JSON.parse(tc.function.arguments) : {};
             return {
-                name: fc.name,
-                args: fc.args
+                name: tc.function.name,
+                args: args
             };
         });
 
@@ -139,7 +148,7 @@ ${projectList || '목록 로딩 중...'}
         });
 
     } catch (error: any) {
-        console.error('Gemini API Proxy Error:', error);
+        console.error('OpenAI API Proxy Error:', error);
         return res.status(500).json({ 
             error: 'CMC_SERVERLESS_INTERNAL_ERROR',
             details: error.message || 'Unknown server error'

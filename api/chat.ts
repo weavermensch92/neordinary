@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-// Standalone version to avoid Vercel bundling issues with relative imports outside of api/
+// Standalone version to avoid Vercel bundling issues
 const UMC_KNOWLEDGE_BASE_LOCAL = `
 UMC (University MakeUs Challenge)는 대학생들의 IT 역량 강화를 위한 실무형 프로젝트 연합 동아리입니다. 
 주로 5기, 6기, 7기, 8기 등의 기수별로 운영되며, 매 기수마다 수십 개의 혁신적인 앱/웹 서비스 프로젝트가 탄생합니다.
@@ -8,13 +8,13 @@ UMC (University MakeUs Challenge)는 대학생들의 IT 역량 강화를 위한 
 `;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    const rawKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    const rawKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
     const apiKey = rawKey?.trim();
 
     if (!apiKey) {
         return res.status(500).json({ 
-            error: 'VITE_GEMINI_API_KEY_NOT_FOUND',
-            details: 'VITE_GEMINI_API_KEY is missing in Vercel environment. Please Redeploy after checking Settings > Environment Variables.' 
+            error: 'OPENAI_API_KEY_NOT_FOUND',
+            details: 'VITE_OPENAI_API_KEY is missing. Please check your environment variables.' 
         });
     }
 
@@ -24,30 +24,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
     res.setHeader(
         'Access-Control-Allow-Headers',
-        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, x-goog-api-key'
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
     );
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
-
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
-    }
+    if (req.method === 'OPTIONS') return res.status(200).end();
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
     try {
         const { message, history, projectList } = req.body;
+        if (!message) return res.status(400).json({ error: 'Message is required' });
 
-        if (!message) {
-            return res.status(400).json({ error: 'Message is required' });
-        }
-
-        const systemInstruction = `당신은 UMC (University MakeUs Challenge) 프로젝트 전시회의 친절한 AI 어시스턴트입니다.
+        const systemContent = `당신은 UMC (University MakeUs Challenge) 프로젝트 전시회의 친절한 AI 어시스턴트입니다.
 UMC에 대한 소개를 제공하고, 사용자의 관심사나 키워드에 맞는 5, 6, 7, 8기 프로젝트를 추천해줍니다.
 
-[중요 규칙 - 절대 준수]
+[중요 규칙]
 1. 반드시 제공된 [현재 전시 중인 프로젝트 목록]에 존재하는 프로젝트만 언급하고 추천하십시오.
-2. 목록에 없는 프로젝트를 임의로 지어내지 마십시오. (Hallucination 금지)
+2. 목록에 없는 프로젝트를 임의로 지어내지 마십시오.
 3. 추천 시에는 반드시 프로젝트 명칭과 기수를 정확히 언급하십시오.
 
 [UMC 사전 지식]
@@ -56,70 +48,66 @@ ${UMC_KNOWLEDGE_BASE_LOCAL}
 [현재 전시 중인 프로젝트 목록]
 ${projectList || '목록 로딩 중...'}
 
-사용자가 특정 프로젝트를 추천받거나 이동하길 원하면, 반드시 'navigateToProject' 도구를 사용하세요.
-한국어로 자연스럽고 친절하게 작성하세요.`;
+사용자가 특정 프로젝트를 추천받거나 이동하길 원하면, 반드시 'navigateToProject' 도구를 사용하세요.`;
 
-        const contents = (history || []).map((msg: any) => ({
-            role: msg.role === 'model' ? 'model' : 'user',
-            parts: Array.isArray(msg.parts) ? msg.parts : [{ text: msg.text || '' }]
-        }));
-        contents.push({ role: 'user', parts: [{ text: message }] });
+        const messages = [
+            { role: 'system', content: systemContent },
+            ...(history || []).map((msg: any) => ({
+                role: msg.role === 'model' ? 'assistant' : 'user',
+                content: typeof msg.text === 'string' ? msg.text : (msg.parts?.[0]?.text || '')
+            })),
+            { role: 'user', content: message }
+        ];
 
-        // v1 (Stable) endpoint requires snake_case field names
-        const targetUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent`;
-        
-        const apiResponse = await fetch(targetUrl, {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
+                'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                contents,
-                system_instruction: { parts: [{ text: systemInstruction }] },
-                tools: [{
-                    function_declarations: [
-                        {
+                model: 'gpt-4o-mini',
+                messages,
+                tools: [
+                    {
+                        type: 'function',
+                        function: {
                             name: 'navigateToProject',
-                            description: 'Navigate to a specific project',
+                            description: 'Navigate to a specific project details page',
                             parameters: {
-                                type: 'OBJECT',
+                                type: 'object',
                                 properties: {
-                                    projectId: { type: 'STRING' },
-                                    reason: { type: 'STRING' }
+                                    projectId: { type: 'string', description: 'The ID of the project to navigate to' },
+                                    reason: { type: 'string', description: 'Brief reason for the navigation' }
                                 },
                                 required: ['projectId', 'reason']
                             }
                         }
-                    ]
-                }]
+                    }
+                ],
+                tool_choice: 'auto'
             })
         });
 
-        if (!apiResponse.ok) {
-            const errorBody = await apiResponse.json().catch(() => ({}));
-            const errMsg = errorBody.error?.message || `GEMINI_HTTP_${apiResponse.status}_${apiResponse.statusText}`;
-            throw new Error(errMsg);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || `OPENAI_HTTP_${response.status}`);
         }
 
-        const data = await apiResponse.json() as any;
-        const candidate = data.candidates?.[0];
+        const data = await response.json();
+        const assistantMessage = data.choices?.[0]?.message;
         
-        if (!candidate) {
-            throw new Error('EMTPY_CANDIDATES');
-        }
+        if (!assistantMessage) throw new Error('EMPTY_OPENAI_RESPONSE');
 
-        const modelParts = candidate.content?.parts || [];
-        const modelText = modelParts.find((p: any) => p.text)?.text || "";
-        // Support both functionCall (SDK style) and function_call (REST style)
-        const callNodes = modelParts.filter((p: any) => p.functionCall || p.function_call);
+        const modelText = assistantMessage.content || "";
+        const toolCalls = assistantMessage.tool_calls || [];
         
-        const functionCalls = (callNodes || []).map((c: any) => {
-            const fc = c.functionCall || c.function_call;
+        const functionCalls = toolCalls.map((tc: any) => {
+            const args = JSON.parse(tc.function.arguments);
             return {
-                name: fc.name,
-                projectId: fc.args?.projectId,
-                reason: fc.args?.reason
+                name: tc.function.name,
+                projectId: args.projectId,
+                reason: args.reason
             };
         });
 
@@ -129,7 +117,7 @@ ${projectList || '목록 로딩 중...'}
         });
 
     } catch (error: any) {
-        console.error('Gemini API Proxy Error:', error);
+        console.error('OpenAI API Error:', error);
         return res.status(500).json({ 
             error: 'SERVERLESS_INTERNAL_ERROR',
             details: error.message || 'Unknown server error'
