@@ -65,8 +65,8 @@ ${projectList || '목록 로딩 중...'}
         }));
         contents.push({ role: 'user', parts: [{ text: message }] });
 
-        // v1beta is more flexible with tools, using specific stable version for alias reliability
-        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-002:generateContent`;
+        // v1 (Stable) endpoint requires snake_case field names
+        const targetUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent`;
         
         const apiResponse = await fetch(targetUrl, {
             method: 'POST',
@@ -76,9 +76,9 @@ ${projectList || '목록 로딩 중...'}
             },
             body: JSON.stringify({
                 contents,
-                systemInstruction: { parts: [{ text: systemInstruction }] },
+                system_instruction: { parts: [{ text: systemInstruction }] },
                 tools: [{
-                    functionDeclarations: [
+                    function_declarations: [
                         {
                             name: 'navigateToProject',
                             description: 'Navigate to a specific project',
@@ -98,7 +98,6 @@ ${projectList || '목록 로딩 중...'}
 
         if (!apiResponse.ok) {
             const errorBody = await apiResponse.json().catch(() => ({}));
-            // Surface the exact error from Google for better debugging
             const errMsg = errorBody.error?.message || `GEMINI_HTTP_${apiResponse.status}_${apiResponse.statusText}`;
             throw new Error(errMsg);
         }
@@ -112,13 +111,17 @@ ${projectList || '목록 로딩 중...'}
 
         const modelParts = candidate.content?.parts || [];
         const modelText = modelParts.find((p: any) => p.text)?.text || "";
-        const callNodes = modelParts.filter((p: any) => p.functionCall);
+        // Support both functionCall (SDK style) and function_call (REST style)
+        const callNodes = modelParts.filter((p: any) => p.functionCall || p.function_call);
         
-        const functionCalls = (callNodes || []).map((c: any) => ({
-            name: c.functionCall.name,
-            projectId: c.functionCall.args?.projectId,
-            reason: c.functionCall.args?.reason
-        }));
+        const functionCalls = (callNodes || []).map((c: any) => {
+            const fc = c.functionCall || c.function_call;
+            return {
+                name: fc.name,
+                projectId: fc.args?.projectId,
+                reason: fc.args?.reason
+            };
+        });
 
         return res.status(200).json({
             text: modelText,
