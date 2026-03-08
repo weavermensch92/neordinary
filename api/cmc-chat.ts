@@ -52,7 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         const { message, history, projectList, action } = req.body;
         
-        const ai = new GoogleGenAI({ apiKey });
+        const ai = new GoogleGenAI(apiKey);
 
         if (action === 'welcome') {
             const systemInstruction = `
@@ -66,12 +66,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               - 내용: 아카이브 데이터가 로드되어 조회 준비가 완료되었음을 알리세요.
               - 이 메시지 작성에는 어떤 도구도 사용하지 마세요.
             `;
-            const result = await ai.models.generateContent({
+            const model = ai.getGenerativeModel({ 
                 model: 'gemini-1.5-flash',
-                config: { systemInstruction },
-                contents: [{ role: 'user', parts: [{ text: "SYSTEM_INIT_SEQUENCE_START" }] }],
+                systemInstruction
             });
-            return res.status(200).json({ text: result.text || "SYSTEM ONLINE. ARCHIVE DATA LOADED." });
+            const result = await model.generateContent("SYSTEM_INIT_SEQUENCE_START");
+            const response = result.response;
+            return res.status(200).json({ text: response.text() || "SYSTEM ONLINE. ARCHIVE DATA LOADED." });
         }
 
         if (action === 'chat') {
@@ -93,23 +94,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
             const formattedHistory = (history || []).map((msg: any) => ({
                 role: msg.role === 'model' ? 'model' : 'user',
-                parts: Array.isArray(msg.parts) ? msg.parts : [{ text: msg.parts?.[0]?.text || msg.text || '' }]
+                parts: Array.isArray(msg.parts) ? msg.parts : [{ text: msg.text || '' }]
             }));
 
-            const chat = ai.chats.create({
+            const model = ai.getGenerativeModel({
                 model: 'gemini-1.5-flash',
-                config: {
-                    systemInstruction,
-                    tools: [{ functionDeclarations: [filterToolDeclaration, resetFilterToolDeclaration] }],
-                },
+                systemInstruction,
+                tools: [{ functionDeclarations: [filterToolDeclaration, resetFilterToolDeclaration] }],
+            });
+
+            const chat = model.startChat({
                 history: formattedHistory,
             });
 
-            const result = await chat.sendMessage({ message });
+            const result = await chat.sendMessage(message);
+            const response = result.response;
+            const text = response.text();
             
             const functionCalls = [];
-            if (result.functionCalls && result.functionCalls.length > 0) {
-                for (const call of result.functionCalls) {
+            const calls = response.functionCalls();
+            if (calls && calls.length > 0) {
+                for (const call of calls) {
                     if (call.name === 'filter_projects' || call.name === 'reset_filter') {
                         functionCalls.push({ name: call.name, args: call.args });
                     }
@@ -117,7 +122,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
 
             return res.status(200).json({
-                text: result.text,
+                text: text,
                 functionCalls
             });
         }
