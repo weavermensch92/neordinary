@@ -28,7 +28,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-        return res.status(500).json({ error: 'GEMINI_API_KEY not found in server environment.' });
+        return res.status(500).json({ 
+            error: 'VITE_GEMINI_API_KEY is missing in Vercel environment. Please add it to your project settings.' 
+        });
     }
 
     // Set CORS headers
@@ -109,7 +111,8 @@ ${projectList || '목록 로딩 중...'}
 
     } catch (error: any) {
         console.error('Gemini API Proxy Error:', error);
-        // Return full error message for debugging
-        return res.status(500).json({ error: error.message || 'Internal Server Error' });
+        return res.status(500).json({ 
+            error: `API REQUEST FAILED: ${error.message || 'Unknown Error'}. Check Vercel logs or API key validity.` 
+        });
     }
 }
