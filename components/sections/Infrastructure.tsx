@@ -25,6 +25,7 @@ export const Infrastructure = ({
     const [isStudioMinimized, setIsStudioMinimized] = useState(false);
     const [isUmcOsOpen, setIsUmcOsOpen] = useState(false);
     const [isUmcOsMinimized, setIsUmcOsMinimized] = useState(false);
+    const [isAnimationComplete, setIsAnimationComplete] = useState(false);
 
     const gridItems = [
         {
@@ -168,12 +169,18 @@ export const Infrastructure = ({
 
             // 5. Show Subtitle (Pink 3)
             setAnimPhase(3);
+
+            // 6. Final mark as complete to unlock scroll
+            await new Promise(r => setTimeout(r, 800)); // Buffer for stagger animations
+            if (!isMounted) return;
+            setIsAnimationComplete(true);
         };
 
         if (isActive) {
             runSequence();
         } else {
             setAnimPhase(0);
+            setIsAnimationComplete(false);
         }
 
         return () => { isMounted = false; };
@@ -246,9 +253,10 @@ export const Infrastructure = ({
         <section
             id="infrastructure"
             ref={sectionRef}
-            className={`w-full min-h-screen relative bg-transparent scroll-section pointer-events-none ${!hasVisitedStudio && !manualOpen ? 'studio-pending' : ''} ${animPhase >= 1 ? 'phase-5-active' : ''}`}
+            data-scroll-locked={!isAnimationComplete}
+            className={`w-full min-h-[160vh] relative bg-transparent scroll-section pointer-events-none ${!hasVisitedStudio && !manualOpen ? 'studio-pending' : ''} ${animPhase >= 1 ? 'phase-5-active' : ''}`}
         >
-            <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-start px-8 md:px-[4rem] box-border max-w-[150rem] mx-auto pointer-events-auto">
+            <div className="sticky top-0 w-full min-h-screen flex flex-col justify-start px-8 md:px-[4rem] box-border max-w-[150rem] mx-auto pointer-events-auto pb-32">
 
 
 
