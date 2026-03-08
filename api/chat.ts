@@ -64,16 +64,16 @@ ${projectList || '목록 로딩 중...'}
         }));
         contents.push({ role: 'user', parts: [{ text: message }] });
 
-        const targetUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
         
         const apiResponse = await fetch(targetUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents,
-                systemInstruction: { parts: [{ text: systemInstruction }] },
+                system_instruction: { parts: [{ text: systemInstruction }] },
                 tools: [{
-                    functionDeclarations: [
+                    function_declarations: [
                         {
                             name: 'navigateToProject',
                             description: 'Navigate to a specific project',
@@ -103,13 +103,18 @@ ${projectList || '목록 로딩 중...'}
             throw new Error('EMTPY_CANDIDATES');
         }
 
-        const modelText = candidate?.content?.parts?.find((p: any) => p.text)?.text || "";
-        const calls = candidate?.content?.parts?.filter((p: any) => p.functionCall);
-        const functionCalls = (calls || []).map((c: any) => ({
-            name: c.functionCall.name,
-            projectId: c.functionCall.args.projectId,
-            reason: c.functionCall.args.reason
-        }));
+        const modelParts = candidate.content?.parts || [];
+        const modelText = modelParts.find((p: any) => p.text)?.text || "";
+        const calls = modelParts.filter((p: any) => p.functionCall || p.function_call);
+        
+        const functionCalls = (calls || []).map((c: any) => {
+            const call = c.functionCall || c.function_call;
+            return {
+                name: call.name,
+                projectId: call.args?.projectId,
+                reason: call.args?.reason
+            };
+        });
 
         return res.status(200).json({
             text: modelText,

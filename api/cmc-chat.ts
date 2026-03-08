@@ -36,7 +36,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        const targetUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         if (action === 'welcome') {
             const systemInstruction = `당신은 CMC 아카이브의 AI 큐레이터입니다.
@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     contents: [{ role: 'user', parts: [{ text: "SYSTEM_INIT_SEQUENCE_START" }] }],
-                    systemInstruction: { parts: [{ text: systemInstruction }] }
+                    system_instruction: { parts: [{ text: systemInstruction }] }
                 })
             });
 
@@ -86,9 +86,9 @@ ${projectList || '목록 로딩 중...'}
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents,
-                systemInstruction: { parts: [{ text: systemInstruction }] },
+                system_instruction: { parts: [{ text: systemInstruction }] },
                 tools: [{
-                    functionDeclarations: [
+                    function_declarations: [
                         {
                             name: 'filter_projects',
                             description: 'Filter projects by keyword',
@@ -113,12 +113,17 @@ ${projectList || '목록 로딩 중...'}
         
         if (!candidate) throw new Error('EMPTY_CANDIDATE');
 
-        const modelText = candidate?.content?.parts?.find((p: any) => p.text)?.text || "";
-        const calls = candidate?.content?.parts?.filter((p: any) => p.functionCall);
-        const functionCalls = (calls || []).map((c: any) => ({
-            name: c.functionCall.name,
-            args: c.functionCall.args
-        }));
+        const modelParts = candidate.content?.parts || [];
+        const modelText = modelParts.find((p: any) => p.text)?.text || "";
+        const calls = modelParts.filter((p: any) => p.functionCall || p.function_call);
+        
+        const functionCalls = (calls || []).map((c: any) => {
+            const call = c.functionCall || c.function_call;
+            return {
+                name: call.name,
+                args: call.args
+            };
+        });
 
         return res.status(200).json({
             text: modelText,
