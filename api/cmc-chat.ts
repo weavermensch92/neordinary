@@ -30,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!apiKey) {
         return res.status(500).json({ 
-            error: 'VITE_CMC_GEMINI_API_KEY is missing in Vercel environment. Please add it to your project settings.' 
+            error: 'VITE_CMC_GEMINI_API_KEY is missing in Vercel environment. Please check your project settings and Redeploy.' 
         });
     }
 
@@ -58,61 +58,96 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        const ai = new GoogleGenAI({ apiKey: apiKey as string });
+        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         if (action === 'welcome') {
             const systemInstruction = `당신은 CMC 아카이브의 AI 큐레이터입니다.
-당신의 목표는 미래지향적이고 간략한 시스템 현황 보고서를 제공하고 사용자를 환영하는 것입니다.
-짧은 단락 하나(최대 2문장)를 작성하세요. 아카이브 데이터 로드 완료를 알리세요.`;
+미래지향적이고 간략한 시스템 현황 보고서를 제공하고 사용자를 환영하세요.
+최대 2문장으로 작성하십시오. 아카이브 데이터 로드 완료를 보고하세요.`;
 
-            const result = await ai.models.generateContent({
-                model: 'gemini-1.5-flash',
-                config: { systemInstruction },
-                contents: [{ role: 'user', parts: [{ text: "SYSTEM_INIT_SEQUENCE_START" }] }]
+            const apiResponse = await fetch(targetUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ role: 'user', parts: [{ text: "SYSTEM_INIT_SEQUENCE_START" }] }],
+                    systemInstruction: { parts: [{ text: systemInstruction }] }
+                })
             });
 
+            if (!apiResponse.ok) {
+                const errorData = await apiResponse.json();
+                throw new Error(errorData.error?.message || `Gemini API Error: ${apiResponse.status}`);
+            }
+
+            const data = await apiResponse.json() as any;
             return res.status(200).json({
-                text: result.text || "SYSTEM ONLINE. ARCHIVE DATA LOADED.",
+                text: data.candidates?.[0]?.content?.parts?.[0]?.text || "SYSTEM ONLINE. ARCHIVE DATA LOADED.",
                 functionCalls: []
             });
         }
 
         const systemInstruction = `당신은 CMC(Central Makeus Challenge) 아카이브의 AI 큐레이터입니다.
-당신의 목표는 사용자들이 미래지향적인 3D IT 프로젝트 아카이브를 탐색할 수 있도록 돕는 것입니다.
+3D IT 프로젝트 아카이브를 탐색하는 사용자를 돕는 것이 임무입니다.
 
-사용 가능한 프로젝트 컨텍스트 요약:
+[프로젝트 목록 컨텍스트]
 ${projectList || '목록 로딩 중...'}
 
-[동작 규칙]
-- 필터링 요청 시 'filter_projects' 도구를 사용하세요.
-- 초기화 요청 시 'reset_filter' 도구가 필요하면 사용하세요.
-- 답변은 한국어로 간결하고 전문적이며, 약간 미래지향적인 느낌을 유지하세요.`;
+[도구 사용 규칙]
+1. 필터링 요청 시 'filter_projects' 도구를 사용하세요.
+2. 초기화 요청 시 'reset_filter' 도구를 사용하세요.
+한국어로 간결하고 전문적이며 미래지향적인 톤을 유지하세요.`;
 
-        const formattedHistory = (history || []).map((msg: any) => ({
+        const contents = (history || []).map((msg: any) => ({
             role: msg.role === 'model' ? 'model' : 'user',
             parts: Array.isArray(msg.parts) ? msg.parts : [{ text: msg.text || '' }]
         }));
+        contents.push({ role: 'user', parts: [{ text: message }] });
 
-        const chat = ai.chats.create({
-            model: "gemini-1.5-flash",
-            config: {
-                systemInstruction,
-                tools: [{ functionDeclarations: [filterToolDeclaration, resetFilterToolDeclaration] }],
-            },
-            history: formattedHistory,
+        const apiResponse = await fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents,
+                systemInstruction: { parts: [{ text: systemInstruction }] },
+                tools: [{
+                    functionDeclarations: [
+                        {
+                            name: 'filter_projects',
+                            description: 'Filter projects by keyword',
+                            parameters: { type: 'OBJECT', properties: { keyword: { type: 'STRING' } }, required: ['keyword'] }
+                        },
+                        {
+                            name: 'reset_filter',
+                            description: 'Reset project filter'
+                        }
+                    ]
+                }]
+            })
         });
 
-        const result = await chat.sendMessage({ message });
-        
+        if (!apiResponse.ok) {
+            const errorData = await apiResponse.json();
+            throw new Error(errorData.error?.message || `Gemini API Error: ${apiResponse.status}`);
+        }
+
+        const data = await apiResponse.json() as any;
+        const candidate = data.candidates?.[0];
+        const modelText = candidate?.content?.parts?.find((p: any) => p.text)?.text || "";
+        const calls = candidate?.content?.parts?.filter((p: any) => p.functionCall);
+        const functionCalls = (calls || []).map((c: any) => ({
+            name: c.functionCall.name,
+            args: c.functionCall.args
+        }));
+
         return res.status(200).json({
-            text: result.text || "",
-            functionCalls: result.functionCalls || []
+            text: modelText,
+            functionCalls
         });
 
     } catch (error: any) {
         console.error('Gemini API Proxy Error:', error);
         return res.status(500).json({ 
-            error: `CMC AI REQUEST FAILED: ${error.message || 'Unknown Error'}. Check Vercel logs or API key validity.` 
+            error: `CMC_SERVERLESS_FETCH_FAILED: ${error.message || 'Unknown Error'}.` 
         });
     }
 }
