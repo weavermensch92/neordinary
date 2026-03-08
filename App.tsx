@@ -73,6 +73,7 @@ const App: React.FC = () => {
     setTimeout(() => {
       isAnimating.current = false;
       boundaryAccumulator.current = 0;
+      lastWheelTime.current = Date.now(); // Prevents trackpad momentum bleed-over
     }, 100);
   };
 
