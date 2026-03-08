@@ -106,76 +106,94 @@ export const UMCDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const fetchGenData = useCallback(async () => {
         setConnectionStatus('SYNCING');
         try {
-            // 1. Fetch all DB items
-            const results = await Promise.all(['gen5', 'gen6', 'gen7', 'gen8'].map(async (genKey) => {
-                const dbId = (DB_IDS as any)[genKey];
-                const response = await fetch(`/api/notion?action=query&id=${dbId}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ page_size: 100 })
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    return { genKey, results: data.results };
+            // Process each generation independently.
+            // We prioritize newer generations (gen8, gen7...) as they are often more relevant.
+            const genKeys = ['gen8', 'gen7', 'gen6', 'gen5'];
+
+            await Promise.all(genKeys.map(async (genKey) => {
+                try {
+                    const dbId = (DB_IDS as any)[genKey];
+                    const response = await fetch(`/api/notion?action=query&id=${dbId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ page_size: 100 })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const results = data.results || [];
+
+                        // 1. Immediate UI update with DB items
+                        const placeholders = createPlaceholders(65, genKey);
+                        const itemsToPreload: { item: any, index: number }[] = [];
+
+                        // Calculate pile covers (indices 0, 13, 26, 39, 52) based on 65 items / 5 piles
+                        const pileCoverIndices = [0, 13, 26, 39, 52];
+
+                        results.forEach((item: any, idx: number) => {
+                            if (idx < placeholders.length) {
+                                placeholders[idx] = item;
+                                // Prioritize pile covers AND first 8 items
+                                if (!item.cover && (pileCoverIndices.includes(idx) || idx < 8)) {
+                                    itemsToPreload.push({ item, index: idx });
+                                }
+                            }
+                        });
+
+                        const processedItems = processNotionItems(placeholders, genKey.toUpperCase());
+
+                        setGenData(prev => ({
+                            ...prev,
+                            [genKey]: processedItems
+                        }));
+
+                        // 2. Immediate Block Pre-fetching for this generation (Don't wait for other gens)
+                        if (itemsToPreload.length > 0) {
+                            // Sort to ensure pile covers are fetched FIRST
+                            itemsToPreload.sort((a, b) => {
+                                const aIsCover = pileCoverIndices.includes(a.index);
+                                const bIsCover = pileCoverIndices.includes(b.index);
+                                if (aIsCover && !bIsCover) return -1;
+                                if (!aIsCover && bIsCover) return 1;
+                                return a.index - b.index;
+                            });
+
+                            // Non-blocking parallel pre-fetch for this generation's critical items
+                            itemsToPreload.map(async ({ item, index }) => {
+                                try {
+                                    const blockResponse = await fetch(`/api/notion?action=blocks&id=${item.id}`);
+                                    if (blockResponse.ok) {
+                                        const blockData = await blockResponse.json();
+                                        const imgBlock = blockData.results?.find((b: any) => b.type === 'image');
+                                        if (imgBlock) {
+                                            const url = imgBlock.image.type === 'file' ? imgBlock.image.file.url : imgBlock.image.external.url;
+                                            setGenData(prev => {
+                                                const updated = { ...prev };
+                                                const genList = [...updated[genKey]];
+                                                if (genList[index]) {
+                                                    genList[index] = {
+                                                        ...genList[index],
+                                                        imageUrl: url
+                                                    };
+                                                }
+                                                updated[genKey] = genList;
+                                                return updated;
+                                            });
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error(`Failed to preload blocks for ${item.id}`, e);
+                                }
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error(`Error fetching sequence for ${genKey}:`, err);
                 }
-                return { genKey, results: [] };
             }));
 
-            const newData = { ...genData };
-            const itemsToPreload: { item: any, genKey: string, index: number }[] = [];
-
-            // 2. Prepare data structure and identify items that need block scanning (those without cover image)
-            results.forEach(({ genKey, results }) => {
-                const placeholders = createPlaceholders(65, genKey);
-                results.forEach((item: any, idx: number) => {
-                    if (idx < placeholders.length) {
-                        placeholders[idx] = item;
-                        // Preload top 5 items for each gen that don't have a cover image
-                        if (idx < 5 && !item.cover) {
-                            itemsToPreload.push({ item, genKey, index: idx });
-                        }
-                    }
-                });
-                newData[genKey] = processNotionItems(placeholders, genKey.toUpperCase());
-            });
-
-            // Initial update with DB items (some might still need block scan)
-            setGenData(newData);
-
-            // 3. Parallel Pre-fetching for blocks (optimizing for initial view)
-            if (itemsToPreload.length > 0) {
-                console.log(`Pre-fetching blocks for ${itemsToPreload.length} items...`);
-                await Promise.all(itemsToPreload.map(async ({ item, genKey, index }) => {
-                    try {
-                        const blockResponse = await fetch(`/api/notion?action=blocks&id=${item.id}`);
-                        if (blockResponse.ok) {
-                            const blockData = await blockResponse.json();
-                            const imgBlock = blockData.results?.find((b: any) => b.type === 'image');
-                            if (imgBlock) {
-                                const url = imgBlock.image.type === 'file' ? imgBlock.image.file.url : imgBlock.image.external.url;
-                                // Update the specific item in newData
-                                setGenData(prev => {
-                                    const updated = { ...prev };
-                                    const genList = [...updated[genKey]];
-                                    if (genList[index]) {
-                                        genList[index] = {
-                                            ...genList[index],
-                                            imageUrl: url
-                                        };
-                                    }
-                                    updated[genKey] = genList;
-                                    return updated;
-                                });
-                            }
-                        }
-                    } catch (e) {
-                        console.error(`Failed to preload blocks for ${item.id}`, e);
-                    }
-                }));
-            }
-
             setConnectionStatus('CONNECTED');
-            console.log("UMC Data & Critical Blocks Pre-loaded successfully");
+            console.log("UMC Data Streaming & Pre-loading sequence initiated");
         } catch (err) {
             console.error("UMC Global Data fetch error:", err);
             setConnectionStatus('ERROR');

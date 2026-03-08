@@ -23,8 +23,6 @@ export const NotionCardComponent: React.FC<{ item: ProcessedItem, isGrid?: boole
         setHasScanned(true);
         setStatus('SCANNING_BLOCKS');
 
-        await new Promise(res => setTimeout(res, Math.random() * 2000));
-
         try {
             if (item.id.startsWith('mock-') || item.id.startsWith('skel-')) {
                 if (isMountedRef.current) {
@@ -163,7 +161,9 @@ export const NotionCardComponent: React.FC<{ item: ProcessedItem, isGrid?: boole
                         <img
                             src={displaySrc || undefined}
                             alt={item.name}
-                            loading="lazy"
+                            // @ts-ignore - fetchPriority is standard now but not in all TS types
+                            fetchPriority="high"
+                            loading="eager"
                             decoding="async"
                             referrerPolicy="no-referrer"
                             className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-105 ${status === 'LOADING_IMAGE' ? 'opacity-0' : 'opacity-100'}`}
