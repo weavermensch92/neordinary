@@ -65,6 +65,10 @@ const AIChat: React.FC<AIChatProps> = ({ onSearch, isFiltered, onReset }) => {
 
       const response = await sendMessageToGemini(historyForAi, userText);
       
+      if (response.error) {
+          throw new Error(response.error);
+      }
+
       // Handle Function Calls (Access as property, not function)
       const functionCalls = response.functionCalls;
       let aiText = response.text;
@@ -90,9 +94,10 @@ const AIChat: React.FC<AIChatProps> = ({ onSearch, isFiltered, onReset }) => {
 
       setMessages(prev => [...prev, { role: 'model', text: aiText }]);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'model', text: 'ERROR: CONNECTION LOST.' }]);
+      const errorMsg = error.message || 'CONNECTION LOST';
+      setMessages(prev => [...prev, { role: 'model', text: `ERROR: ${errorMsg.toUpperCase()}` }]);
     } finally {
       setIsLoading(false);
     }

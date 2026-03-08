@@ -49,6 +49,11 @@ export const Chatbot: React.FC<ChatbotProps> = ({ projects, onNavigate }) => {
       }
 
       const data = await response.json();
+      
+      if (data.error) {
+          throw new Error(data.error);
+      }
+
       let modelText = data.text || '';
 
       if (data.functionCalls && data.functionCalls.length > 0) {
@@ -66,9 +71,10 @@ export const Chatbot: React.FC<ChatbotProps> = ({ projects, onNavigate }) => {
       }
 
       setMessages(prev => [...prev, { role: 'model', text: modelText }]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Chat error:", error);
-      setMessages(prev => [...prev, { role: 'model', text: '죄송합니다. 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }]);
+      const errorMsg = error.message || '오류가 발생했습니다.';
+      setMessages(prev => [...prev, { role: 'model', text: `죄송합니다. 오류가 발생했습니다: ${errorMsg}` }]);
     } finally {
       setIsLoading(false);
     }

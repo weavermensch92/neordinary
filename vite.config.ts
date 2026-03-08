@@ -133,6 +133,13 @@ export default defineConfig(({ mode }) => {
                     })
                   });
 
+                  if (!response.ok) {
+                    const errorData = await response.json();
+                    res.statusCode = response.status;
+                    res.end(JSON.stringify({ error: errorData.error?.message || 'Gemini API Error' }));
+                    return;
+                  }
+
                   const data = await response.json() as any;
                   const candidate = data.candidates?.[0];
                   const modelText = candidate?.content?.parts?.find((p: any) => p.text)?.text || "";
@@ -141,10 +148,66 @@ export default defineConfig(({ mode }) => {
 
                   res.setHeader('Content-Type', 'application/json');
                   res.end(JSON.stringify({ text: modelText, functionCalls }));
+                } else if (req.url.startsWith('/api/chat')) {
+                  // Standard chat proxy for UMC
+                  const { message, history, projectList } = body;
+                  const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+                  
+                  const systemInstruction = `당신은 UMC (University MakeUs Challenge) 프로젝트 전시회의 친절한 AI 어시스턴트입니다.\n사용 가능한 프로젝트:\n${projectList}\n특정 프로젝트로 이동하려면 navigateToProject 도구를 사용하세요.`;
+                  
+                  const contents = (history || []).map((msg: any) => ({
+                    role: msg.role === 'model' ? 'model' : 'user',
+                    parts: [{ text: msg.text || '' }]
+                  }));
+                  contents.push({ role: 'user', parts: [{ text: message }] });
+
+                  const response = await fetch(targetUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      contents,
+                      systemInstruction: { parts: [{ text: systemInstruction }] },
+                      tools: [{
+                        functionDeclarations: [
+                          {
+                            name: 'navigateToProject',
+                            description: 'Navigate to a specific project',
+                            parameters: {
+                              type: 'OBJECT',
+                              properties: {
+                                projectId: { type: 'STRING' },
+                                reason: { type: 'STRING' }
+                              },
+                              required: ['projectId', 'reason']
+                            }
+                          }
+                        ]
+                      }]
+                    })
+                  });
+
+                  if (!response.ok) {
+                    const errorData = await response.json();
+                    res.statusCode = response.status;
+                    res.end(JSON.stringify({ error: errorData.error?.message || 'Gemini API Error' }));
+                    return;
+                  }
+
+                  const data = await response.json() as any;
+                  const candidate = data.candidates?.[0];
+                  const modelText = candidate?.content?.parts?.find((p: any) => p.text)?.text || "";
+                  const calls = candidate?.content?.parts?.filter((p: any) => p.functionCall);
+                  const functionCalls = (calls || []).map((c: any) => ({ 
+                    name: c.functionCall.name, 
+                    projectId: c.functionCall.args.projectId,
+                    reason: c.functionCall.args.reason
+                  }));
+
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ text: modelText, functionCalls }));
                 } else {
-                  // Standard chat proxy
-                  res.statusCode = 501;
-                  res.end(JSON.stringify({ error: 'Local proxy for /api/chat not fully implemented. Please use production or vercel dev.' }));
+                  res.statusCode = 404;
+                  res.end(JSON.stringify({ error: 'API route not found' }));
                 }
               } catch (error: any) {
                 res.statusCode = 500;
