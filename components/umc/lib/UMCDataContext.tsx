@@ -106,6 +106,7 @@ export const UMCDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const fetchGenData = useCallback(async () => {
         setConnectionStatus('SYNCING');
         try {
+            // 1. Fetch all DB items
             const results = await Promise.all(['gen5', 'gen6', 'gen7', 'gen8'].map(async (genKey) => {
                 const dbId = (DB_IDS as any)[genKey];
                 const response = await fetch(`/api/notion?action=query&id=${dbId}`, {
@@ -121,22 +122,65 @@ export const UMCDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }));
 
             const newData = { ...genData };
+            const itemsToPreload: { item: any, genKey: string, index: number }[] = [];
+
+            // 2. Prepare data structure and identify items that need block scanning (those without cover image)
             results.forEach(({ genKey, results }) => {
                 const placeholders = createPlaceholders(65, genKey);
                 results.forEach((item: any, idx: number) => {
-                    if (idx < placeholders.length) placeholders[idx] = item;
+                    if (idx < placeholders.length) {
+                        placeholders[idx] = item;
+                        // Preload top 5 items for each gen that don't have a cover image
+                        if (idx < 5 && !item.cover) {
+                            itemsToPreload.push({ item, genKey, index: idx });
+                        }
+                    }
                 });
                 newData[genKey] = processNotionItems(placeholders, genKey.toUpperCase());
             });
 
+            // Initial update with DB items (some might still need block scan)
             setGenData(newData);
+
+            // 3. Parallel Pre-fetching for blocks (optimizing for initial view)
+            if (itemsToPreload.length > 0) {
+                console.log(`Pre-fetching blocks for ${itemsToPreload.length} items...`);
+                await Promise.all(itemsToPreload.map(async ({ item, genKey, index }) => {
+                    try {
+                        const blockResponse = await fetch(`/api/notion?action=blocks&id=${item.id}`);
+                        if (blockResponse.ok) {
+                            const blockData = await blockResponse.json();
+                            const imgBlock = blockData.results?.find((b: any) => b.type === 'image');
+                            if (imgBlock) {
+                                const url = imgBlock.image.type === 'file' ? imgBlock.image.file.url : imgBlock.image.external.url;
+                                // Update the specific item in newData
+                                setGenData(prev => {
+                                    const updated = { ...prev };
+                                    const genList = [...updated[genKey]];
+                                    if (genList[index]) {
+                                        genList[index] = {
+                                            ...genList[index],
+                                            imageUrl: url
+                                        };
+                                    }
+                                    updated[genKey] = genList;
+                                    return updated;
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        console.error(`Failed to preload blocks for ${item.id}`, e);
+                    }
+                }));
+            }
+
             setConnectionStatus('CONNECTED');
-            console.log("UMC Data Pre-loaded successfully");
+            console.log("UMC Data & Critical Blocks Pre-loaded successfully");
         } catch (err) {
             console.error("UMC Global Data fetch error:", err);
             setConnectionStatus('ERROR');
         }
-    }, [genData, processNotionItems]);
+    }, [processNotionItems]); // Removed genData from deps to prevent infinite loop or unnecessary re-runs
 
     useEffect(() => {
         fetchGenData();
