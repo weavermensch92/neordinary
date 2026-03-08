@@ -8,7 +8,8 @@ UMC (University MakeUs Challenge)는 대학생들의 IT 역량 강화를 위한 
 `;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    const rawKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    const apiKey = rawKey?.trim();
 
     if (!apiKey) {
         return res.status(500).json({ 
@@ -23,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
     res.setHeader(
         'Access-Control-Allow-Headers',
-        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, x-goog-api-key'
     );
 
     if (req.method === 'OPTIONS') {
@@ -64,16 +65,20 @@ ${projectList || '목록 로딩 중...'}
         }));
         contents.push({ role: 'user', parts: [{ text: message }] });
 
-        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // v1beta is more flexible with tools, using specific stable version for alias reliability
+        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-002:generateContent`;
         
         const apiResponse = await fetch(targetUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-goog-api-key': apiKey
+            },
             body: JSON.stringify({
                 contents,
-                system_instruction: { parts: [{ text: systemInstruction }] },
+                systemInstruction: { parts: [{ text: systemInstruction }] },
                 tools: [{
-                    function_declarations: [
+                    functionDeclarations: [
                         {
                             name: 'navigateToProject',
                             description: 'Navigate to a specific project',
@@ -93,7 +98,9 @@ ${projectList || '목록 로딩 중...'}
 
         if (!apiResponse.ok) {
             const errorBody = await apiResponse.json().catch(() => ({}));
-            throw new Error(errorBody.error?.message || `GEMINI_HTTP_${apiResponse.status}`);
+            // Surface the exact error from Google for better debugging
+            const errMsg = errorBody.error?.message || `GEMINI_HTTP_${apiResponse.status}_${apiResponse.statusText}`;
+            throw new Error(errMsg);
         }
 
         const data = await apiResponse.json() as any;
@@ -105,16 +112,13 @@ ${projectList || '목록 로딩 중...'}
 
         const modelParts = candidate.content?.parts || [];
         const modelText = modelParts.find((p: any) => p.text)?.text || "";
-        const calls = modelParts.filter((p: any) => p.functionCall || p.function_call);
+        const callNodes = modelParts.filter((p: any) => p.functionCall);
         
-        const functionCalls = (calls || []).map((c: any) => {
-            const call = c.functionCall || c.function_call;
-            return {
-                name: call.name,
-                projectId: call.args?.projectId,
-                reason: call.args?.reason
-            };
-        });
+        const functionCalls = (callNodes || []).map((c: any) => ({
+            name: c.functionCall.name,
+            projectId: c.functionCall.args?.projectId,
+            reason: c.functionCall.args?.reason
+        }));
 
         return res.status(200).json({
             text: modelText,
