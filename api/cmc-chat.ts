@@ -3,7 +3,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 // Standalone CMC AI handler
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    const apiKey = process.env.VITE_CMC_GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    const rawKey = process.env.VITE_CMC_GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    const apiKey = rawKey?.trim();
 
     if (!apiKey) {
         return res.status(500).json({ 
@@ -18,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
     res.setHeader(
         'Access-Control-Allow-Headers',
-        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, x-goog-api-key'
     );
 
     if (req.method === 'OPTIONS') {
@@ -36,7 +37,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // Use stable version for better reliability on v1beta
+        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-002:generateContent`;
 
         if (action === 'welcome') {
             const systemInstruction = `당신은 CMC 아카이브의 AI 큐레이터입니다.
@@ -45,21 +47,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
             const apiResponse = await fetch(targetUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': apiKey
+                },
                 body: JSON.stringify({
                     contents: [{ role: 'user', parts: [{ text: "SYSTEM_INIT_SEQUENCE_START" }] }],
-                    system_instruction: { parts: [{ text: systemInstruction }] }
+                    systemInstruction: { parts: [{ text: systemInstruction }] }
                 })
             });
 
             if (!apiResponse.ok) {
                 const errBody = await apiResponse.json().catch(() => ({}));
-                throw new Error(errBody.error?.message || `GEMINI_HTTP_${apiResponse.status}`);
+                throw new Error(errBody.error?.message || `WELCOME_FETCH_ERROR_${apiResponse.status}`);
             }
 
             const data = await apiResponse.json() as any;
             return res.status(200).json({
-                text: data.candidates?.[0]?.content?.parts?.[0]?.text || "SYSTEM ONLINE. ARCHIVE DATA LOADED.",
+                text: data.candidates?.[0]?.content?.parts?.[0]?.text || "SYSTEM READY.",
                 functionCalls: []
             });
         }
@@ -83,12 +88,15 @@ ${projectList || '목록 로딩 중...'}
 
         const apiResponse = await fetch(targetUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-goog-api-key': apiKey
+            },
             body: JSON.stringify({
                 contents,
-                system_instruction: { parts: [{ text: systemInstruction }] },
+                systemInstruction: { parts: [{ text: systemInstruction }] },
                 tools: [{
-                    function_declarations: [
+                    functionDeclarations: [
                         {
                             name: 'filter_projects',
                             description: 'Filter projects by keyword',
@@ -115,13 +123,12 @@ ${projectList || '목록 로딩 중...'}
 
         const modelParts = candidate.content?.parts || [];
         const modelText = modelParts.find((p: any) => p.text)?.text || "";
-        const calls = modelParts.filter((p: any) => p.functionCall || p.function_call);
+        const callNodes = modelParts.filter((p: any) => p.functionCall);
         
-        const functionCalls = (calls || []).map((c: any) => {
-            const call = c.functionCall || c.function_call;
+        const functionCalls = (callNodes || []).map((c: any) => {
             return {
-                name: call.name,
-                args: call.args
+                name: c.functionCall.name,
+                args: c.functionCall.args
             };
         });
 
