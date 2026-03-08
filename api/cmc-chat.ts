@@ -37,8 +37,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        // Use stable version for better reliability on v1beta
-        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-002:generateContent`;
+        // v1 (Stable) endpoint requires snake_case field names
+        const targetUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent`;
 
         if (action === 'welcome') {
             const systemInstruction = `당신은 CMC 아카이브의 AI 큐레이터입니다.
@@ -53,7 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 },
                 body: JSON.stringify({
                     contents: [{ role: 'user', parts: [{ text: "SYSTEM_INIT_SEQUENCE_START" }] }],
-                    systemInstruction: { parts: [{ text: systemInstruction }] }
+                    system_instruction: { parts: [{ text: systemInstruction }] }
                 })
             });
 
@@ -94,9 +94,9 @@ ${projectList || '목록 로딩 중...'}
             },
             body: JSON.stringify({
                 contents,
-                systemInstruction: { parts: [{ text: systemInstruction }] },
+                system_instruction: { parts: [{ text: systemInstruction }] },
                 tools: [{
-                    functionDeclarations: [
+                    function_declarations: [
                         {
                             name: 'filter_projects',
                             description: 'Filter projects by keyword',
@@ -123,12 +123,13 @@ ${projectList || '목록 로딩 중...'}
 
         const modelParts = candidate.content?.parts || [];
         const modelText = modelParts.find((p: any) => p.text)?.text || "";
-        const callNodes = modelParts.filter((p: any) => p.functionCall);
+        const callNodes = modelParts.filter((p: any) => p.functionCall || p.function_call);
         
         const functionCalls = (callNodes || []).map((c: any) => {
+            const fc = c.functionCall || c.function_call;
             return {
-                name: c.functionCall.name,
-                args: c.functionCall.args
+                name: fc.name,
+                args: fc.args
             };
         });
 
