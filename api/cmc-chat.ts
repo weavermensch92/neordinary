@@ -26,10 +26,10 @@ const resetFilterToolDeclaration: FunctionDeclaration = {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    const apiKey = process.env.VITE_CMC_GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-        return res.status(500).json({ error: 'GEMINI_API_KEY not found in server environment.' });
+        return res.status(500).json({ error: 'CMC_GEMINI_API_KEY not found in server environment.' });
     }
 
     // Set CORS headers

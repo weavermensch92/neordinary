@@ -65,11 +65,15 @@ export default defineConfig(({ mode }) => {
                 res.end(JSON.stringify({ error: error.message }));
               }
             } else if (req.url && (req.url.startsWith('/api/chat') || req.url.startsWith('/api/cmc-chat'))) {
-              const geminiKey = env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY;
+              const isCmc = req.url.startsWith('/api/cmc-chat');
+              const geminiKey = isCmc 
+                ? (env.VITE_CMC_GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY)
+                : (env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY);
+
               if (!geminiKey) {
-                console.error('[AI Proxy] GEMINI_API_KEY not found in .env');
+                console.error(`[AI Proxy] API Key not found for ${isCmc ? 'CMC' : 'UMC'}`);
                 res.statusCode = 500;
-                res.end(JSON.stringify({ error: 'GEMINI_API_KEY not found in .env' }));
+                res.end(JSON.stringify({ error: `${isCmc ? 'CMC' : 'UMC'} API Key not found in .env` }));
                 return;
               }
 
