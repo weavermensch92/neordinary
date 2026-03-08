@@ -1096,45 +1096,23 @@ export const sendMessageToGemini = async (
   history: { role: string; parts: { text: string }[] }[],
   userMessage: string
 ) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-  // Create a summary of available projects for the system prompt
-  // We don't send the entire JSON to save tokens, just a summary of modules and keywords
   const projectSummary = PROJECT_DATA.map(p => 
     `- ${p.module} (${p.cohort}): ${p.keywords}`
   ).join('\n');
 
-  const systemInstruction = `
-    당신은 CMC(Central Makeus Challenge) 아카이브의 AI 큐레이터입니다.
-    당신의 목표는 사용자들이 미래지향적인 3D IT 프로젝트 아카이브를 탐색할 수 있도록 돕는 것입니다.
-    다음과 같은 도구를 사용할 수 있습니다.
-    1. 'filter_projects(keyword)': 사용자가 특정 유형의 프로젝트, 코호트 또는 주제를 보고 싶어할 때 호출합니다. 가장 관련성이 높은 단일 키워드를 추출합니다.
-    2. 'reset_filter()': 사용자가 "모든" 프로젝트를 보거나 보기를 "초기화"하려는 경우 호출합니다.
-    
-    사용 가능한 프로젝트 컨텍스트 요약:
-    ${projectSummary}
-    동작 규칙:
-    - 사용자가 추천을 요청하면 사용자의 관심사와 일치하는 키워드를 선택하고 'filter_projects'를 호출합니다.
-    - 사용자가 특정 코호트(예: "15기")에 대해 문의하면 "15기"를 사용하여 'filter_projects'를 호출합니다.
-    - 답변은 간결하고 전문적이며, 약간 미래지향적이거나 로봇 같은 느낌을 유지하세요(예: "필터링 프로토콜이 시작되었습니다...", "아카이브에 접근하는 중입니다...").
-    - 프로젝트 목록을 텍스트로만 나열하지 마세요. 반드시 도구를 사용하여 앱을 시각적으로 업데이트해야 합니다.
-  `;
-
   try {
-    const chat = ai.chats.create({
-      model: 'gemini-3-flash-preview',
-      config: {
-        systemInstruction: systemInstruction,
-        tools: [{ functionDeclarations: [filterToolDeclaration, resetFilterToolDeclaration] }],
-      },
-      history: history.map(h => ({
-        role: h.role,
-        parts: h.parts,
-      })),
+    const response = await fetch('/api/cmc-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            message: userMessage,
+            history: history,
+            projectList: projectSummary,
+            action: 'chat'
+        })
     });
-
-    const result = await chat.sendMessage({ message: userMessage });
-    return result;
+    if (!response.ok) throw new Error('API request failed');
+    return await response.json();
   } catch (error) {
     console.error("Gemini API Error:", error);
     throw error;
@@ -1142,37 +1120,24 @@ export const sendMessageToGemini = async (
 };
 
 export const generateWelcomeMessage = async () => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
-  // Reuse the same project summary for consistency
   const projectSummary = PROJECT_DATA.map(p => 
     `- ${p.module} (${p.cohort}): ${p.keywords}`
   ).join('\n');
 
-  const systemInstruction = `
-    당신은 CMC 아카이브의 AI 큐레이터입니다.
-    당신의 목표는 미래지향적이고 간략한 시스템 현황 보고서를 제공하고 사용자를 환영하는 것입니다.
-    배경 정보:
-    - 총 프로젝트 수: ${PROJECT_DATA.length}
-    - 총 코호트 수: 17개 (11기부터 17기까지)
-    - 주요 테마: AI, 라이프스타일, 금융, 사회
-    지침:
-    - 짧은 단락 하나(최대 2문장)를 작성하세요.
-    - 스타일: 미래지향적이고 로봇 같지만 정중하게 작성하세요.
-    - 내용: 아카이브 데이터가 로드되어 조회 준비가 완료되었음을 알리세요.
-    - 이 메시지 작성에는 어떤 도구도 사용하지 마세요.
-  `;
-
   try {
-    const result = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      config: {
-        systemInstruction: systemInstruction,
-      },
-      contents: [{ role: 'user', parts: [{ text: "SYSTEM_INIT_SEQUENCE_START" }] }],
+    const response = await fetch('/api/cmc-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            message: 'SYSTEM_INIT_SEQUENCE_START',
+            history: [],
+            projectList: projectSummary,
+            action: 'welcome'
+        })
     });
-    
-    return result.text || "SYSTEM ONLINE. ARCHIVE DATA LOADED.";
+    if (!response.ok) throw new Error('API request failed');
+    const data = await response.json();
+    return data.text || "SYSTEM ONLINE. ARCHIVE DATA LOADED.";
   } catch (error) {
     console.error("Welcome Message Error:", error);
     return "SYSTEM ONLINE. ARCHIVE DATA LOADED. AWAITING COMMAND.";

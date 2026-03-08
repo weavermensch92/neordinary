@@ -317,8 +317,8 @@ export const CMCOsContentWrapper: React.FC<CMCOsContentWrapperProps> = ({ onClos
                             {/* 3D Scene */}
                             <div className="w-full h-full flex items-center justify-center perspective-[2000px] mt-12">
                                 <div 
-                                    className="relative w-full h-full preserve-3d transition-transform duration-700 ease-out"
-                                    style={{ transform: 'rotateX(55deg) rotateZ(35deg) translateX(-15%) translateY(55%) scale(0.9)' }}
+                                    className="relative w-full h-full transition-transform duration-700 ease-out"
+                                    style={{ transformStyle: 'preserve-3d', transform: 'rotateX(55deg) rotateZ(35deg) translateX(-15%) translateY(55%) scale(0.9)' }}
                                 >
                                     {/* Main Grid */}
                                     <GridBackground 

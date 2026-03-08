@@ -55,12 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        // Ensure history is formatted correctly for gemini
-        // The frontend history format is { role: 'user'|'model', text: string }
-        const formattedHistory = (history || []).map((msg: any) => ({
-            role: msg.role === 'model' ? 'model' : 'user',
-            parts: [{ text: msg.text }]
-        }));
+
 
         const systemInstruction = `당신은 UMC (University MakeUs Challenge) 프로젝트 전시회의 친절한 AI 어시스턴트입니다.
 UMC에 대한 소개를 제공하고, 사용자의 관심사나 키워드에 맞는 5, 6, 7, 8기 프로젝트를 추천해줍니다.
@@ -80,31 +75,31 @@ ${projectList || '목록 로딩 중...'}
 사용자가 특정 프로젝트를 보고 싶어하거나 추천한 프로젝트로 이동하길 원하면, 반드시 'navigateToProject' 도구를 사용하여 해당 프로젝트의 ID를 전달하세요.
 답변은 한국어로 자연스럽고 친절하게 작성하세요.`;
 
-        const ai = new GoogleGenAI(apiKey);
-        const model = ai.getGenerativeModel({
-            model: "gemini-1.5-flash",
-            systemInstruction: systemInstruction,
-            tools: [{ functionDeclarations: [navigateToProjectDeclaration] }],
-        });
+        const ai = new GoogleGenAI({ apiKey });
 
-        const chat = model.startChat({
+        const formattedHistory = (history || []).map((msg: any) => ({
+            role: msg.role === 'model' ? 'model' : 'user',
+            parts: Array.isArray(msg.parts) ? msg.parts : [{ text: msg.parts?.[0]?.text || msg.text || '' }]
+        }));
+
+        const chat = ai.chats.create({
+            model: 'gemini-1.5-flash',
+            config: {
+                systemInstruction: systemInstruction,
+                tools: [{ functionDeclarations: [navigateToProjectDeclaration] }],
+            },
             history: formattedHistory,
         });
 
-        const result = await chat.sendMessage(message);
-        const response = result.response;
-        const modelText = response.text();
+        const result = await chat.sendMessage({ message });
+        const modelText = result.text;
         const functionCalls = [];
 
-        const calls = response.functionCalls();
-        if (calls && calls.length > 0) {
-            for (const call of calls) {
+        if (result.functionCalls && result.functionCalls.length > 0) {
+            for (const call of result.functionCalls) {
                 if (call.name === 'navigateToProject') {
                     const args = call.args as any;
-                    const projectId = args.projectId;
-                    const reason = args.reason;
-
-                    functionCalls.push({ name: call.name, projectId, reason });
+                    functionCalls.push({ name: call.name, projectId: args.projectId, reason: args.reason });
                 }
             }
         }
