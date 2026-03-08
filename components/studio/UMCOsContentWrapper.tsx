@@ -268,6 +268,7 @@ export const UMCOsContentWrapper: React.FC<UMCOsContentWrapperProps> = ({ onClos
                     containerRef={containerRef}
                     onClose={handleClose}
                     onMinimize={onMinimize}
+                    isMinimal={true}
                 />
 
                 <div className="relative w-full h-full overflow-hidden">

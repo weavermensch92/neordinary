@@ -108,7 +108,7 @@ export const UMCDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
         try {
             const results = await Promise.all(['gen5', 'gen6', 'gen7', 'gen8'].map(async (genKey) => {
                 const dbId = (DB_IDS as any)[genKey];
-                const response = await fetch(`/api/notion/query/${dbId}`, {
+                const response = await fetch(`/api/notion?action=query&id=${dbId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ page_size: 100 })

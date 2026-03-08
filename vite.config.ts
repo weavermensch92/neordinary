@@ -24,9 +24,10 @@ export default defineConfig(({ mode }) => {
               }
 
               try {
-                const urlParts = req.url.split('/');
-                const action = urlParts[3]; // 'query' or 'blocks'
-                const id = urlParts[4];
+                // Determine action and ID from query params
+                const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+                const action = urlObj.searchParams.get('action');
+                const id = urlObj.searchParams.get('id');
 
                 let targetUrl = '';
                 let method = 'GET';

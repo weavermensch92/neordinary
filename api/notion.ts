@@ -21,17 +21,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const fullPath = req.url || '';
-        // Expected formats: 
-        // /api/notion/query/:id
-        // /api/notion/blocks/:id
-        const parts = fullPath.split('?')[0].split('/');
-        // parts[0] is "", parts[1] is "api", parts[2] is "notion", parts[3] is action, parts[4] is id
-        const action = parts[3];
-        const id = parts[4];
+        const action = req.query.action as string;
+        const id = req.query.id as string;
 
         if (!action || !id) {
-            return res.status(400).json({ error: 'Invalid API path. Expected /api/notion/query/:id or /api/notion/blocks/:id' });
+            return res.status(400).json({ error: 'Invalid API path. Expected ?action=query&id=...' });
         }
 
         let targetUrl = '';

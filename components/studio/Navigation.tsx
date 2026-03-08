@@ -6,6 +6,7 @@ interface NavigationProps {
   containerRef?: React.RefObject<HTMLDivElement | null>;
   onClose?: () => void;
   onMinimize?: () => void;
+  isMinimal?: boolean;
 }
 
 const MENU_ITEMS = [
@@ -17,7 +18,7 @@ const MENU_ITEMS = [
   "WORKERS ;"
 ];
 
-export const Navigation: React.FC<NavigationProps> = ({ show, containerRef, onClose, onMinimize }) => {
+export const Navigation: React.FC<NavigationProps> = ({ show, containerRef, onClose, onMinimize, isMinimal = false }) => {
   const { scrollY } = useScroll({ container: containerRef });
   const [isScrolledDown, setIsScrolledDown] = useState(false);
   const [isRightHovered, setIsRightHovered] = useState(false);
@@ -115,40 +116,44 @@ export const Navigation: React.FC<NavigationProps> = ({ show, containerRef, onCl
       {/* 
         LEFT COLUMN: Menu Items 
       */}
-      <motion.div
-        className="flex flex-col items-start gap-1 pointer-events-auto"
-        initial="hidden"
-        animate={isGeneralNavVisible ? "visible" : "hidden"}
-        variants={menuListVariants}
-      >
-        {MENU_ITEMS.map((item) => (
-          <motion.a
-            key={item}
-            href={`#${item.toLowerCase().replace(/[^a-z]/g, '')}`}
-            className="text-[0.625rem] md:text-xs font-bold uppercase tracking-wider text-brand-red hover:text-brand-dark transition-colors duration-300 font-sans"
-            variants={menuItemVariants}
-          >
-            {item}
-          </motion.a>
-        ))}
-      </motion.div>
+      {!isMinimal && (
+        <motion.div
+          className="flex flex-col items-start gap-1 pointer-events-auto"
+          initial="hidden"
+          animate={isGeneralNavVisible ? "visible" : "hidden"}
+          variants={menuListVariants}
+        >
+          {MENU_ITEMS.map((item) => (
+            <motion.a
+              key={item}
+              href={`#${item.toLowerCase().replace(/[^a-z]/g, '')}`}
+              className="text-[0.625rem] md:text-xs font-bold uppercase tracking-wider text-brand-red hover:text-brand-dark transition-colors duration-300 font-sans"
+              variants={menuItemVariants}
+            >
+              {item}
+            </motion.a>
+          ))}
+        </motion.div>
+      )}
 
       {/* 
         CENTER: Logo (Text)
       */}
-      <motion.div
-        className="absolute top-4 md:top-6 left-0 w-full flex justify-center pointer-events-none"
-        initial="hidden"
-        animate={isGeneralNavVisible ? "visible" : "hidden"}
-        variants={logoVariants}
-      >
-        <h1
-          className="font-display text-2xl md:text-4xl tracking-tighter text-brand-red leading-none uppercase text-center cursor-pointer pointer-events-auto"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      {!isMinimal && (
+        <motion.div
+          className="absolute top-4 md:top-6 left-0 w-full flex justify-center pointer-events-none"
+          initial="hidden"
+          animate={isGeneralNavVisible ? "visible" : "hidden"}
+          variants={logoVariants}
         >
-          NE(O)RDINARY
-        </h1>
-      </motion.div>
+          <h1
+            className="font-display text-2xl md:text-4xl tracking-tighter text-brand-red leading-none uppercase text-center cursor-pointer pointer-events-auto"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            NE(O)RDINARY
+          </h1>
+        </motion.div>
+      )}
 
       {/* 
         RIGHT COLUMN: Navigator Area 
