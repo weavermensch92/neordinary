@@ -67,38 +67,35 @@ export default defineConfig(({ mode }) => {
             } else if (req.url && (req.url.startsWith('/api/chat') || req.url.startsWith('/api/cmc-chat'))) {
               const geminiKey = env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY;
               if (!geminiKey) {
+                console.error('[AI Proxy] GEMINI_API_KEY not found in .env');
                 res.statusCode = 500;
                 res.end(JSON.stringify({ error: 'GEMINI_API_KEY not found in .env' }));
                 return;
               }
 
               try {
-                // Determine action and ID from query params
-                const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-                
                 // Read body
                 const buffers = [];
                 for await (const chunk of req) {
                   buffers.push(chunk);
                 }
                 const bodyStr = Buffer.concat(buffers).toString();
+                if (!bodyStr) {
+                    res.statusCode = 400;
+                    res.end(JSON.stringify({ error: 'Empty request body' }));
+                    return;
+                }
                 const body = JSON.parse(bodyStr);
 
-                // Call the actual serverless function logic or just proxy
-                // Since we want to handle it locally, we'll import genai
-                // But wait, importing from @google/genai might be tricky in vite.config.
-                // Let's use a simple fetch to the handler if it's running, or just implement the logic here.
-                // For simplicity, let's just forward it to a placeholder for now or use the global fetch.
-                // Actually, since we have the key, we can call Gemini directly.
+                const isCmc = req.url.startsWith('/api/cmc-chat');
+                const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
                 
-                // For CMC Chat
-                if (req.url.startsWith('/api/cmc-chat')) {
-                  const { message, history, projectList, action } = body;
-                  const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
-                  
-                  let contents = [];
-                  let systemInstruction = "";
+                let contents = [];
+                let systemInstruction = "";
+                let tools = [];
 
+                if (isCmc) {
+                  const { message, history, projectList, action } = body;
                   if (action === 'welcome') {
                     systemInstruction = "당신은 CMC 아카이브의 AI 큐레이터입니다. 미래지향적이고 간략한 시스템 현황 보고서를 제공하고 사용자를 환영하는 것입니다. 짧은 단락 하나(최대 2문장)를 작성하세요.";
                     contents = [{ role: 'user', parts: [{ text: "SYSTEM_INIT_SEQUENCE_START" }] }];
@@ -109,15 +106,7 @@ export default defineConfig(({ mode }) => {
                       parts: Array.isArray(msg.parts) ? msg.parts : [{ text: msg.text || '' }]
                     }));
                     contents.push({ role: 'user', parts: [{ text: message }] });
-                  }
-
-                  const response = await fetch(targetUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      contents,
-                      systemInstruction: { parts: [{ text: systemInstruction }] },
-                      tools: action === 'chat' ? [{
+                    tools = [{
                         functionDeclarations: [
                           {
                             name: 'filter_projects',
@@ -129,87 +118,71 @@ export default defineConfig(({ mode }) => {
                             description: 'Reset filter'
                           }
                         ]
-                      }] : []
-                    })
-                  });
-
-                  if (!response.ok) {
-                    const errorData = await response.json();
-                    res.statusCode = response.status;
-                    res.end(JSON.stringify({ error: errorData.error?.message || 'Gemini API Error' }));
-                    return;
+                    }];
                   }
-
-                  const data = await response.json() as any;
-                  const candidate = data.candidates?.[0];
-                  const modelText = candidate?.content?.parts?.find((p: any) => p.text)?.text || "";
-                  const calls = candidate?.content?.parts?.filter((p: any) => p.functionCall);
-                  const functionCalls = (calls || []).map((c: any) => ({ name: c.functionCall.name, args: c.functionCall.args }));
-
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ text: modelText, functionCalls }));
-                } else if (req.url.startsWith('/api/chat')) {
-                  // Standard chat proxy for UMC
+                } else {
+                  // UMC
                   const { message, history, projectList } = body;
-                  const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
-                  
-                  const systemInstruction = `당신은 UMC (University MakeUs Challenge) 프로젝트 전시회의 친절한 AI 어시스턴트입니다.\n사용 가능한 프로젝트:\n${projectList}\n특정 프로젝트로 이동하려면 navigateToProject 도구를 사용하세요.`;
-                  
-                  const contents = (history || []).map((msg: any) => ({
+                  systemInstruction = `당신은 UMC (University MakeUs Challenge) 프로젝트 전시회의 친절한 AI 어시스턴트입니다.\n사용 가능한 프로젝트:\n${projectList}\n특정 프로젝트로 이동하려면 navigateToProject 도구를 사용하세요.`;
+                  contents = (history || []).map((msg: any) => ({
                     role: msg.role === 'model' ? 'model' : 'user',
                     parts: [{ text: msg.text || '' }]
                   }));
                   contents.push({ role: 'user', parts: [{ text: message }] });
-
-                  const response = await fetch(targetUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      contents,
-                      systemInstruction: { parts: [{ text: systemInstruction }] },
-                      tools: [{
-                        functionDeclarations: [
-                          {
-                            name: 'navigateToProject',
-                            description: 'Navigate to a specific project',
-                            parameters: {
-                              type: 'OBJECT',
-                              properties: {
-                                projectId: { type: 'STRING' },
-                                reason: { type: 'STRING' }
-                              },
-                              required: ['projectId', 'reason']
-                            }
-                          }
-                        ]
-                      }]
-                    })
-                  });
-
-                  if (!response.ok) {
-                    const errorData = await response.json();
-                    res.statusCode = response.status;
-                    res.end(JSON.stringify({ error: errorData.error?.message || 'Gemini API Error' }));
-                    return;
-                  }
-
-                  const data = await response.json() as any;
-                  const candidate = data.candidates?.[0];
-                  const modelText = candidate?.content?.parts?.find((p: any) => p.text)?.text || "";
-                  const calls = candidate?.content?.parts?.filter((p: any) => p.functionCall);
-                  const functionCalls = (calls || []).map((c: any) => ({ 
-                    name: c.functionCall.name, 
-                    projectId: c.functionCall.args.projectId,
-                    reason: c.functionCall.args.reason
-                  }));
-
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ text: modelText, functionCalls }));
-                } else {
-                  res.statusCode = 404;
-                  res.end(JSON.stringify({ error: 'API route not found' }));
+                  tools = [{
+                    functionDeclarations: [
+                      {
+                        name: 'navigateToProject',
+                        description: 'Navigate to a specific project',
+                        parameters: {
+                          type: 'OBJECT',
+                          properties: {
+                            projectId: { type: 'STRING' },
+                            reason: { type: 'STRING' }
+                          },
+                          required: ['projectId', 'reason']
+                        }
+                      }
+                    ]
+                  }];
                 }
+
+                console.log(`[AI Proxy] Calling Gemini API for ${req.url}...`);
+                const response = await fetch(targetUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    contents,
+                    systemInstruction: { parts: [{ text: systemInstruction }] },
+                    tools
+                  })
+                });
+
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  console.error(`[AI Proxy] Gemini API Error:`, errorData);
+                  res.statusCode = response.status;
+                  res.end(JSON.stringify({ error: errorData.error?.message || 'Gemini API Error' }));
+                  return;
+                }
+
+                const data = await response.json() as any;
+                const candidate = data.candidates?.[0];
+                const modelText = candidate?.content?.parts?.find((p: any) => p.text)?.text || "";
+                const calls = candidate?.content?.parts?.filter((p: any) => p.functionCall);
+                const functionCalls = (calls || []).map((c: any) => {
+                  const fc = c.functionCall;
+                  if (!isCmc && fc.name === 'navigateToProject') {
+                      return { name: fc.name, projectId: fc.args.projectId, reason: fc.args.reason };
+                  }
+                  return { name: fc.name, args: fc.args };
+                });
+
+                console.log(`[AI Proxy] Successfully handled ${req.url}`);
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ text: modelText, functionCalls }));
               } catch (error: any) {
+                console.error(`[AI Proxy] Internal Proxy Error:`, error);
                 res.statusCode = 500;
                 res.end(JSON.stringify({ error: error.message }));
               }
