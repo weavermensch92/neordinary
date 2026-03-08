@@ -4,6 +4,7 @@ import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 import { Users, Building2, MapPin, Database, Zap, Globe, ArrowUpRight } from 'lucide-react';
 import { StudioContentWrapper } from '../studio/StudioContentWrapper';
 import { UMCOsContentWrapper } from '../studio/UMCOsContentWrapper';
+import { CMCOsContentWrapper } from '../studio/CMCOsContentWrapper';
 
 export const Infrastructure = ({
     onNavigate,
@@ -25,6 +26,8 @@ export const Infrastructure = ({
     const [isStudioMinimized, setIsStudioMinimized] = useState(false);
     const [isUmcOsOpen, setIsUmcOsOpen] = useState(false);
     const [isUmcOsMinimized, setIsUmcOsMinimized] = useState(false);
+    const [isCmcOsOpen, setIsCmcOsOpen] = useState(false);
+    const [isCmcOsMinimized, setIsCmcOsMinimized] = useState(false);
     const [isAnimationComplete, setIsAnimationComplete] = useState(false);
 
     const gridItems = [
@@ -105,7 +108,10 @@ export const Infrastructure = ({
         {
             span: "md:col-span-1 md:row-span-1",
             content: (
-                <div className="w-full h-full bg-[#0A0A0A] border-4 border-white/5 p-10 flex flex-col items-center justify-center text-center group relative overflow-hidden uppercase hover:bg-white hover:text-black transition-all duration-700">
+                <div
+                    onClick={() => setIsCmcOsOpen(true)}
+                    className="w-full h-full bg-[#0A0A0A] border-4 border-white/5 p-10 flex flex-col items-center justify-center text-center group relative overflow-hidden uppercase hover:bg-white hover:text-black transition-all duration-700 cursor-pointer"
+                >
                     <div className="absolute inset-0 border-l-[1rem] border-white/20" />
                     <Globe className="w-12 h-12 lg:w-16 lg:h-16 text-blue-500 mb-6 relative z-10 group-hover:text-black transition-colors" />
                     <div className="text-4xl lg:text-5xl font-black text-white mb-2 tracking-tighter leading-[0.8] relative z-10 group-hover:text-black transition-colors">CMC</div>
@@ -223,10 +229,11 @@ export const Infrastructure = ({
     const isStudioOpen = manualOpen;
     const isStudioActive = isStudioOpen && !isStudioMinimized;
     const isUmcOsActive = isUmcOsOpen && !isUmcOsMinimized;
+    const isCmcOsActive = isCmcOsOpen && !isCmcOsMinimized;
 
     useEffect(() => {
-        if (onTogglePause) onTogglePause(isStudioActive || isUmcOsActive);
-    }, [isStudioActive, isUmcOsActive, onTogglePause]);
+        if (onTogglePause) onTogglePause(isStudioActive || isUmcOsActive || isCmcOsActive);
+    }, [isStudioActive, isUmcOsActive, isCmcOsActive, onTogglePause]);
 
     const handleFooterReached = (isScrollExit = false) => {
         setHasVisitedStudio(true);
@@ -360,33 +367,60 @@ export const Infrastructure = ({
                 document.body
             )}
 
-            {/* Persistent UMC OS Widget (Always accessible when not active) */}
-            {!isUmcOsActive && createPortal(
-                <button
-                    onClick={() => {
-                        setIsUmcOsMinimized(false);
-                        setIsUmcOsOpen(true);
-                    }}
-                    className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] bg-white text-black px-6 py-4 font-black uppercase tracking-[0.3em] border-[8px] border-black hover:bg-black hover:text-white transition-colors duration-300 shadow-[0.75rem_0.75rem_0_0_rgba(59,130,246,1)] flex items-center gap-4 group cursor-pointer pointer-events-auto"
-                >
-                    <div className="w-3 h-3 bg-blue-500" />
-                    <span className="group-hover:text-blue-500 transition-colors mt-1">UMC PROJECTS</span>
-                </button>,
+            {/* CMC OS Content Modal */}
+            {isCmcOsActive && createPortal(
+                <CMCOsContentWrapper
+                    onClose={() => setIsCmcOsOpen(false)}
+                    onMinimize={() => setIsCmcOsMinimized(true)}
+                />,
                 document.body
             )}
 
-            {/* Minimized Studio Widget */}
-            {(isStudioMinimized || (hasVisitedStudio && !isStudioOpen)) && createPortal(
-                <button
-                    onClick={() => {
-                        setIsStudioMinimized(false);
-                        setManualOpen(true);
-                    }}
-                    className="fixed bottom-8 left-8 z-[100] bg-white text-black px-6 py-4 font-black uppercase tracking-[0.3em] border-[8px] border-black hover:bg-black hover:text-white transition-colors duration-300 shadow-[0.75rem_0.75rem_0_0_rgba(168,85,247,1)] flex items-center gap-4 group cursor-pointer pointer-events-auto"
-                >
-                    <div className="w-3 h-3 bg-accent" />
-                    <span className="group-hover:text-accent transition-colors mt-1">NEORDINARY STUDIO</span>
-                </button>,
+            {/* Left-aligned Unified Widgets Container */}
+            {createPortal(
+                <div className="fixed bottom-8 left-8 flex flex-col gap-4 z-[100] pointer-events-none items-start">
+                    {/* Persistent CMC Widget */}
+                    {!isCmcOsActive && (
+                        <button
+                            onClick={() => {
+                                setIsCmcOsMinimized(false);
+                                setIsCmcOsOpen(true);
+                            }}
+                            className="bg-white text-black px-6 py-4 font-black uppercase tracking-[0.3em] border-[8px] border-black hover:bg-black hover:text-white transition-colors duration-300 shadow-[0.75rem_0.75rem_0_0_rgba(230,0,35,1)] flex items-center gap-4 group cursor-pointer pointer-events-auto"
+                        >
+                            <div className="w-3 h-3 bg-[#E60023]" />
+                            <span className="group-hover:text-[#E60023] transition-colors mt-1">CMC SLIDER</span>
+                        </button>
+                    )}
+
+                    {/* Persistent UMC OS Widget */}
+                    {!isUmcOsActive && (
+                        <button
+                            onClick={() => {
+                                setIsUmcOsMinimized(false);
+                                setIsUmcOsOpen(true);
+                            }}
+                            className="bg-white text-black px-6 py-4 font-black uppercase tracking-[0.3em] border-[8px] border-black hover:bg-black hover:text-white transition-colors duration-300 shadow-[0.75rem_0.75rem_0_0_rgba(59,130,246,1)] flex items-center gap-4 group cursor-pointer pointer-events-auto"
+                        >
+                            <div className="w-3 h-3 bg-blue-500" />
+                            <span className="group-hover:text-blue-500 transition-colors mt-1">UMC PROJECTS</span>
+                        </button>
+                    )}
+
+                    {/* Minimized Studio Widget */}
+                    {(isStudioMinimized || (hasVisitedStudio && !isStudioOpen)) && (
+                        <button
+                            onClick={() => {
+                                setIsStudioMinimized(false);
+                                setManualOpen(true);
+                            }}
+                            className="bg-white text-black px-6 py-4 font-black uppercase tracking-[0.3em] border-[8px] border-black hover:bg-black hover:text-white transition-colors duration-300 shadow-[0.75rem_0.75rem_0_0_rgba(168,85,247,1)] flex items-center gap-4 group cursor-pointer pointer-events-auto"
+                        >
+                            <div className="w-3 h-3 bg-accent" />
+                            <span className="group-hover:text-accent transition-colors mt-1">NEORDINARY STUDIO</span>
+                        </button>
+                    )}
+                </div>,
                 document.body
             )}
         </section>

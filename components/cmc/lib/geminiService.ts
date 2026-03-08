@@ -1,0 +1,1180 @@
+import { SystemLog } from '../types';
+import { GoogleGenAI, FunctionDeclaration, Type } from "@google/genai";
+
+const PROJECT_DATA: SystemLog[] = [
+  {
+    id: "1",
+    type: "PROJECT",
+    timestamp: "2024.02",
+    module: "말모",
+    status: "LAUNCHED",
+    efficiency: 17,
+    cohort: "17기",
+    keywords: "라이프스타일·AI상담·연애·속마음",
+    message: "이해되지 않는 연인의 속마음을 알려주는 AI 상담",
+    imageMain: "https://cmc.makeus.in/static/9bc783548cd51e7816311b26377e02fd/d7d27/malmo.png",
+    linkIOS: "https://apps.apple.com/kr/app/%EB%A7%90%EB%AA%A8-malmo-ai-%EC%97%B0%EC%95%A0-%EC%83%81%EB%8B%B4-%EB%A7%88%EC%9D%8C-%EC%A7%88%EB%AC%B8/id6749349296",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.malmo.app",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "2",
+    type: "PROJECT",
+    timestamp: "2024.02",
+    module: "약쏙",
+    status: "LAUNCHED",
+    efficiency: 17,
+    cohort: "17기",
+    keywords: "헬스케어·복약관리·알람",
+    message: "잔소리하는 약 알람, 약쏙! 약쏙은 혼자가 아니라, 함께 챙기는 복약을 도와요.",
+    imageMain: "https://cmc.makeus.in/static/e1b2e25716c23da2158f5bf6594fae6d/d1b30/yakssok.png",
+    linkIOS: "https://apps.apple.com/kr/app/%EC%95%BD%EC%8F%99-%EC%9E%94%EC%86%8C%EB%A6%AC%ED%95%B4-%EC%A3%BC%EB%8A%94-%EC%95%BD-%EC%95%8C%EB%9E%8C/id6749473223",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.pillsquad.yakssok&hl=ko",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "3",
+    type: "PROJECT",
+    timestamp: "2024.02",
+    module: "치트키",
+    status: "LAUNCHED",
+    efficiency: 17,
+    cohort: "17기",
+    keywords: "금융·사기방지·AI",
+    message: "발빠르게 검증하는, AI 기반 사기 위험 감지 솔루션 치트키",
+    imageMain: "https://cmc.makeus.in/static/7673a0eb822ebbabab9c692854637ef9/219fc/cheatkey.png",
+    linkIOS: "https://apps.apple.com/kr/app/%EC%B9%98%ED%8A%B8%ED%82%A4-ai-%EC%82%AC%EA%B8%B0%ED%83%90%EC%A7%80-%ED%94%8C%EB%9E%AB%ED%8F%BC/id6749635626",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.cheatkey.app&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "4",
+    type: "PROJECT",
+    timestamp: "2024.02",
+    module: "눈 떠!",
+    status: "LAUNCHED",
+    efficiency: 17,
+    cohort: "17기",
+    keywords: "유틸리티·알람·챌린지·위치인증",
+    message: "무조건 목표장소로 가도록 만드는 알람 앱! 운동, 공부, 어떤 목표든 눈 떠와 함께 이뤄보세요.",
+    imageMain: "https://cmc.makeus.in/static/501a385cb5b3a638a0bc37f92d8baac0/d1b30/openeye.png",
+    linkIOS: "https://apps.apple.com/kr/app/%EB%88%88-%EB%96%A0-%EB%AA%A9%ED%91%9C-%EC%9E%A5%EC%86%8C-%EB%8F%84%EC%B0%A9-%EC%9D%B8%EC%A6%9D-%EA%B0%95%EC%A0%9C-%EC%95%8C%EB%9E%8C/id6749834236",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.whiplash.akuma&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "5",
+    type: "PROJECT",
+    timestamp: "2024.02",
+    module: "림버",
+    status: "LAUNCHED",
+    efficiency: 17,
+    cohort: "17기",
+    keywords: "자기계발·도파민디톡스·집중력·타이머",
+    message: "집중력을 기르는 도파민 앱 차단 '실험 타이머'. 디지털 도파민에서 벗어나, 지금 나의 상황에 집중해 보세요",
+    imageMain: "https://cmc.makeus.in/static/21dc701757c5de544410a5219a41245f/d1b30/limber.png",
+    linkIOS: "https://apps.apple.com/kr/app/%EB%A6%BC%EB%B2%84/id6747666779",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.kkh.cmc.limber",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "6",
+    type: "PROJECT",
+    timestamp: "2024.02",
+    module: "Ballog",
+    status: "LAUNCHED",
+    efficiency: 17,
+    cohort: "17기",
+    keywords: "엔터테인먼트·야구·직관기록·감정일기",
+    message: "야구를 보며 요동치는 감정을 참을 수 없다면? 감정으로 남기는 나만의 야구 관람 기록, 볼로그",
+    imageMain: "https://cmc.makeus.in/static/a0928832d5a4d47f8c485a05a4b0a4d0/d1b30/ballog.png",
+    linkIOS: "https://apps.apple.com/kr/app/ballog-볼로그/id6749778947",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.ballog.app",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "7",
+    type: "PROJECT",
+    timestamp: "2024.02",
+    module: "런콤비",
+    status: "LAUNCHED",
+    efficiency: 17,
+    cohort: "17기",
+    keywords: "라이프스타일·반려견·산책·러닝",
+    message: "올해 운동은 반려견과 함께! 반려견과 함께 운동하는 특별한 경험을 만들어보세요",
+    imageMain: "https://cmc.makeus.in/static/ab91b19239362acd021f363c1914753c/d1b30/runcombi.png",
+    linkIOS: "https://apps.apple.com/kr/app/%EB%9F%B0%EC%BD%A4%EB%B9%84-%EB%B0%98%EB%A0%A4%EA%B2%AC-%EC%82%B0%EC%B1%85-%EC%9A%B4%EB%8F%99-%EA%B8%B0%EB%A1%9D/id6747975586",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.combo.runcombi&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "8",
+    type: "PROJECT",
+    timestamp: "2024.02",
+    module: "상태창",
+    status: "LAUNCHED",
+    efficiency: 17,
+    cohort: "17기",
+    keywords: "자기계발·게이미피케이션·퀘스트",
+    message: "자기계발 퀘스트로 레벨업! 이제, 자기계발을 게임처럼 즐기세요.",
+    imageMain: "https://cmc.makeus.in/static/b7a8a2f889994ed17a7f2a15379fc7d4/d1b30/status.png",
+    linkIOS: "https://apps.apple.com/kr/app/%EC%83%81%ED%83%9C%EC%B0%BD/id6747613959",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.status.app.status",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "9",
+    type: "PROJECT",
+    timestamp: "2023.08",
+    module: "굴비잇기",
+    status: "LAUNCHED",
+    efficiency: 16,
+    cohort: "16기",
+    keywords: "금융·절약·짠테크·루틴",
+    message: "굴비의 짠테크! '굴비잇기'로 절약 루틴을 만들어보세요",
+    imageMain: "https://cmc.makeus.in/static/79f4a8a27203f9c049cb14dcc8a2974f/d1b30/gulbi.png",
+    linkIOS: "https://apps.apple.com/kr/app/%EA%B5%B4%EB%B9%84%EC%9E%87%EA%B8%B0/id6741732715",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.project.goolbi&hl=ko",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "10",
+    type: "PROJECT",
+    timestamp: "2023.08",
+    module: "파타타",
+    status: "LAUNCHED",
+    efficiency: 16,
+    cohort: "16기",
+    keywords: "라이프스타일·사진명소·스팟공유·지도",
+    message: "사진 스팟을 발견하고, 나만의 스팟을 공유하다",
+    imageMain: "https://cmc.makeus.in/static/8340cd4d15702cbc911f6090a85a5be1/d1b30/patata.png",
+    linkIOS: "https://apps.apple.com/kr/app/%ED%8C%8C%ED%83%80%ED%83%80-%EC%82%AC%EC%A7%84-%EC%8A%A4%ED%8C%9F%EC%9D%98-%EB%AA%A8%EB%93%A0-%EA%B2%83/id6742177268",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.cmc.patata",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "11",
+    type: "PROJECT",
+    timestamp: "2023.08",
+    module: "PillMe",
+    status: "LAUNCHED",
+    efficiency: 16,
+    cohort: "16기",
+    keywords: "헬스케어·영양제·건강관리·AI추천",
+    message: "AI 기반 맞춤형 건강기능식품, 사용자 맞춤 영양제 추천, 상담을 통해 더 쉽고 정확한 능동적 건강 솔루션을 제공합니다.",
+    imageMain: "https://cmc.makeus.in/static/3b6cbe7218b78c7b9a270ff50f6fcfc7/2a048/pillme.png",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "12",
+    type: "PROJECT",
+    timestamp: "2023.08",
+    module: "Whidy",
+    status: "LAUNCHED",
+    efficiency: 16,
+    cohort: "16기",
+    keywords: "유틸리티·공간정보·취업스터디·장소추천",
+    message: "취업과 학습에 필요한 장소에 대한 정보를 제공해 사용자들이 원하는 장소를 쉽고 빠르게 찾을 수 있도록 돕습니다.",
+    imageMain: "https://cmc.makeus.in/static/611e67e66a7127992182beb6aa44dca0/00b02/whidy.png",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.whidy.whidyandroid&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "13",
+    type: "PROJECT",
+    timestamp: "2023.08",
+    module: "골메이트",
+    status: "LAUNCHED",
+    efficiency: 16,
+    cohort: "16기",
+    keywords: "자기계발·챌린지·멘토링",
+    message: "멘토와 함께하는 목표 달성 플랫폼 골메이트",
+    imageMain: "https://cmc.makeus.in/static/0dc360850d55418dc09a2e9c3ce6b86c/d0995/goalmate.png",
+    linkIOS: "https://apps.apple.com/kr/app/%EA%B3%A8%EB%A9%94%EC%9D%B4%ED%8A%B8/id6741704150",
+    linkAndroid: "https://play.google.com/store/apps/details?id=cmc.goalmate&hl=ko",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "14",
+    type: "PROJECT",
+    timestamp: "2023.08",
+    module: "Ruty",
+    status: "LAUNCHED",
+    efficiency: 16,
+    cohort: "16기",
+    keywords: "라이프스타일·1인가구·생활관리·루틴",
+    message: "1인 가구 맞춤형 생활 관리 플랫폼",
+    imageMain: "https://cmc.makeus.in/static/02b92ba1c9500492d407efeca5f6d8c7/6891f/ruty.png",
+    linkIOS: "https://apps.apple.com/kr/app/%EB%A3%A8%ED%8B%B0/id6742365699",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "15",
+    type: "PROJECT",
+    timestamp: "2023.08",
+    module: "Dice",
+    status: "LAUNCHED",
+    efficiency: 16,
+    cohort: "16기",
+    keywords: "비즈니스·팝업스토어·공간대여·소상공인",
+    message: "소상공인, 자영업자를 위한 팝업공간 대여 및 운영 지원 플랫폼",
+    imageMain: "https://cmc.makeus.in/static/52bcf6f26acbaf6b999d185d837dfe1a/92cc0/dice.png",
+    linkIOS: "https://apps.apple.com/kr/app/dice-%ED%8C%9D%EC%97%85-%EC%9A%B4%EC%98%81-%EC%98%AC%EC%9D%B8%EC%9B%90-%EC%86%94%EB%A3%A8%EC%85%98/id6742072988",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.cmc.dice.minipop.expo",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "16",
+    type: "PROJECT",
+    timestamp: "2023.08",
+    module: "Mercury",
+    status: "LAUNCHED",
+    efficiency: 16,
+    cohort: "16기",
+    keywords: "라이프스타일·독서기록·서평·책",
+    message: "세상 쉬운 독서기록",
+    imageMain: "https://cmc.makeus.in/static/7940b8a73da131e7ac88ead6a672e8bb/95dd8/mercury.jpg",
+    linkIOS: "https://apps.apple.com/kr/app/%EB%A8%B8%ED%81%90%EB%A6%AC/id6741918517",
+    linkAndroid: "https://play.google.com/store/apps/details?id=kr.co.mercuryplanet.www&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "17",
+    type: "PROJECT",
+    timestamp: "2023.08",
+    module: "Spark",
+    status: "LAUNCHED",
+    efficiency: 16,
+    cohort: "16기",
+    keywords: "비즈니스·크리에이터·SNS성장·유튜브",
+    message: "SNS 및 유튜브 성장 비법 제안 서비스",
+    imageMain: "https://cmc.makeus.in/static/196df17efaba121117d58c6db759dc81/d1b30/spark.png",
+    linkIOS: "https://apps.apple.com/kr/app/spark-%EC%8A%A4%ED%8C%8C%ED%81%AC/id6742328947",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.spark.sns.creators&hl=ko",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "18",
+    type: "PROJECT",
+    timestamp: "2023.02",
+    module: "B.Link",
+    status: "LAUNCHED",
+    efficiency: 15,
+    cohort: "15기",
+    keywords: "유틸리티·링크관리·아카이빙·북마크",
+    message: "링크 아카이빙 서비스",
+    imageMain: "https://cmc.makeus.in/static/a8d89c3218518798bd7dca2d0f16b505/fce78/b_link.jpg",
+    linkIOS: "https://apps.apple.com/us/app/b-link/id6630368733",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "19",
+    type: "PROJECT",
+    timestamp: "2023.02",
+    module: "퓨리즘",
+    status: "LAUNCHED",
+    efficiency: 15,
+    cohort: "15기",
+    keywords: "엔터테인먼트·사진필터·감성사진·이미지편집",
+    message: "감성 사진을 위한 필터 서비스",
+    imageMain: "https://cmc.makeus.in/static/f34c20aec611f7615c34de166c4b9f31/5527a/purithm.png",
+    linkIOS: "https://apps.apple.com/kr/app/%ED%93%A8%EB%A6%AC%EC%A6%98/id6523427087",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.cmc.purithm&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "20",
+    type: "PROJECT",
+    timestamp: "2023.02",
+    module: "suppin",
+    status: "LAUNCHED",
+    efficiency: 15,
+    cohort: "15기",
+    keywords: "비즈니스·SNS·이벤트·마케팅",
+    message: "SNS 이벤트 관리/당첨자 선별 효율화를 지원하는 서비스",
+    imageMain: "https://cmc.makeus.in/static/8efa6154f01def57cd6bd4ffb8034870/0ea1c/supin.png",
+    linkIOS: "https://apps.apple.com/kr/app/suppin-%EC%8D%A8%ED%95%80/id6648765679",
+    linkAndroid: " https://play.google.com/store/apps/details?id=com.suppin.app",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "21",
+    type: "PROJECT",
+    timestamp: "2023.02",
+    module: "프리뷰인슈",
+    status: "LAUNCHED",
+    efficiency: 15,
+    cohort: "15기",
+    keywords: "금융·보험·설계",
+    message: "인생 보험 설계, 프리뷰인슈에서 내 보험을 그려보세요",
+    imageMain: "https://cmc.makeus.in/static/6704e0cc36038f76961bc54f21a20f96/a3486/presue.png",
+    linkIOS: "https://apps.apple.com/kr/app/%ED%94%84%EB%A6%AC%EB%B7%B0%EC%9D%B8%EC%8A%88/id6587559820",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.previewinsure.android",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "22",
+    type: "PROJECT",
+    timestamp: "2023.02",
+    module: "SNAPFIT",
+    status: "LAUNCHED",
+    efficiency: 15,
+    cohort: "15기",
+    keywords: "라이프스타일·스냅사진·매칭·촬영",
+    message: "분위기 맞춤형 스냅사진 매칭 서비스",
+    imageMain: "https://cmc.makeus.in/static/00d17c021c0eaf42d01d5c5537205a13/a3b5d/snapfit.png",
+    linkIOS: "https://apps.apple.com/kr/app/snapfit/id6642695481",
+    linkAndroid: "https://play.google.com/store/apps/details?id=memory.fabricators.snapfit&pli=1",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "23",
+    type: "PROJECT",
+    timestamp: "2023.02",
+    module: "PLUV",
+    status: "LAUNCHED",
+    efficiency: 15,
+    cohort: "15기",
+    keywords: "엔터테인먼트·플레이리스트·음악·유튜브",
+    message: "플레이리스트 통합 관리 서비스",
+    imageMain: "https://cmc.makeus.in/static/b7af1b512140fa82102e0ac7bd5a64b2/80718/pluv.jpg",
+    linkIOS: "https://apps.apple.com/kr/app/pluv/id6645736556",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.cmc15th.pluv&hl=ko",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "24",
+    type: "PROJECT",
+    timestamp: "2023.02",
+    module: "BinVoyage",
+    status: "LAUNCHED",
+    efficiency: 15,
+    cohort: "15기",
+    keywords: "유틸리티·쓰레기통·위치·환경",
+    message: "더 이상 쓰레기통을 찾아 헤매지 마세요. BinVoyage와 함께해요!",
+    imageMain: "https://cmc.makeus.in/static/5175ca31ed4ce5da7db4aecb6ab85245/d1b30/bin_voyage.png",
+    linkIOS: "https://apps.apple.com/kr/app/binvoyage/id6624302211?",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.binvoyage",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "25",
+    type: "PROJECT",
+    timestamp: "2023.02",
+    module: "노피스-Noffice",
+    status: "LAUNCHED",
+    efficiency: 15,
+    cohort: "15기",
+    keywords: "유틸리티·공지사항·알림·협업",
+    message: "공지사항 관리 서비스",
+    imageMain: "https://cmc.makeus.in/static/3c79e255c4c507b611fa717de4075d32/47a11/noffice.png",
+    linkIOS: "https://apps.apple.com/kr/app/noffice-노피스/id6529546973?l=en-GB",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.easyhz.noffice.release&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "26",
+    type: "PROJECT",
+    timestamp: "2022.08",
+    module: "Blue Club",
+    status: "LAUNCHED",
+    efficiency: 14,
+    cohort: "14기",
+    keywords: "비즈니스·특수고용·노동·스케줄",
+    message: "특수고용직 노동자의 파트너, 블루클럽",
+    imageMain: "https://cmc.makeus.in/static/32fd102bd22f154bded59f10664032a4/f3dad/blue-club.png",
+    linkIOS: "https://apps.apple.com/kr/app/블루클럽-blueclub/id6477823755",
+    linkAndroid: "https://play.google.com/store/apps/details?id=org.blueclub&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "27",
+    type: "PROJECT",
+    timestamp: "2022.08",
+    module: "Packy",
+    status: "LAUNCHED",
+    efficiency: 14,
+    cohort: "14기",
+    keywords: "커머스·선물박스·커스텀·기념일",
+    message: "마음으로 채우는 특별한 선물박스 커스텀 앱 패키(Packy) 입니다.",
+    imageMain: "https://cmc.makeus.in/static/085e78c9c73b8cc4a28ed048a0a83329/f3dad/packy.png",
+    linkIOS: "https://apps.apple.com/kr/app/패키/id6477327987",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.packy",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "28",
+    type: "PROJECT",
+    timestamp: "2022.08",
+    module: "팝콘메이트",
+    status: "LAUNCHED",
+    efficiency: 14,
+    cohort: "14기",
+    keywords: "엔터테인먼트·영화·기록·덕질",
+    message: "영화ㆍ영상 전공생들의 영화덕질 플랫폼",
+    imageMain: "https://cmc.makeus.in/static/88abf04745db0d66f94622be1a149bc2/f3dad/popcorn-mate.png",
+    linkIOS: "https://apps.apple.com/kr/app/popcorn-mate/id6476854398",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.popcornmate",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "29",
+    type: "PROJECT",
+    timestamp: "2022.08",
+    module: "데이캐럿",
+    status: "LAUNCHED",
+    efficiency: 14,
+    cohort: "14기",
+    keywords: "커리어·경험정리·취업",
+    message: "DayCarat은 취준생을 위한 ‘경험 기록 서비스’입니다.",
+    imageMain: "https://cmc.makeus.in/static/d546f27e2f12d7a120dd56b2be1dbde0/f3dad/day-carat.png",
+    linkIOS: "https://apps.apple.com/kr/app/데이캐럿/id6476876242",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.makeus.daycarat",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "30",
+    type: "PROJECT",
+    timestamp: "2022.08",
+    module: "피어나",
+    status: "LAUNCHED",
+    efficiency: 14,
+    cohort: "14기",
+    keywords: "소셜·팀빌딩·동료찾기·사이드프로젝트",
+    message: "소프트 스킬 기반 프로젝트 동료 탐색 & 제안 서비스",
+    imageMain: "https://cmc.makeus.in/static/010421e52879ca664a482f56be5fe797/f3dad/peerna.png",
+    linkIOS: "https://apps.apple.com/kr/app/피어나-나와-꼭-맞는-동료가-피어나는-곳/id6477722172",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.peerna",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "31",
+    type: "PROJECT",
+    timestamp: "2022.08",
+    module: "그냥 그렇다고",
+    status: "LAUNCHED",
+    efficiency: 14,
+    cohort: "14기",
+    keywords: "소셜·감정일기·소통·익명",
+    message: "현재 나의 기분을 감정 이모지와 함께 간단히 말하고 공감 버튼만으로 소통하는 서비스.",
+    imageMain: "https://cmc.makeus.in/static/915d10f3e312359ee4866be1c685292b/f3dad/just-like-that.png",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.sowhat.justsayitt",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "32",
+    type: "PROJECT",
+    timestamp: "2022.08",
+    module: "달달쇼핑",
+    status: "LAUNCHED",
+    efficiency: 14,
+    cohort: "14기",
+    keywords: "커머스·앱테크·쇼핑·환급",
+    message: "결제액의 일부를 환급 받을 수 있는 쇼핑몰 앱",
+    imageMain: "https://cmc.makeus.in/static/0818c904395145edb6e77a48303f54d5/f3dad/daldal-shoping.png",
+    linkIOS: "https://apps.apple.com/kr/app/달달쇼핑/id6477835653",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.daldalShopping",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "33",
+    type: "PROJECT",
+    timestamp: "2022.08",
+    module: "Easybud",
+    status: "LAUNCHED",
+    efficiency: 14,
+    cohort: "14기",
+    keywords: "금융·가계부·자산관리",
+    message: "복식부기 원리를 가계부에 도입해 사용자들의 재정 상황을 투명하고 정확하게 이해할 수 있도록 돕는 플랫폼",
+    imageMain: "https://cmc.makeus.in/static/b31e1df6541c51dda58ec253d7e27025/f3dad/easy-bud.png",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.easybud",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "34",
+    type: "PROJECT",
+    timestamp: "2022.02",
+    module: "커튼콜",
+    status: "LAUNCHED",
+    efficiency: 13,
+    cohort: "13기",
+    keywords: "엔터테인먼트·공연·연극·뮤지컬",
+    message: "연극과 뮤지컬의 매력에 빠지다.",
+    imageMain: "https://cmc.makeus.in/static/30e2cc24fe717f06c881f9cab3d93215/f3dad/curtaincall.png",
+    linkIOS: "https://apps.apple.com/kr/app/%EC%BB%A4%ED%8A%BC%EC%BD%9C/id6450673014",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.cmc.curtaincall&pli=1",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "35",
+    type: "PROJECT",
+    timestamp: "2022.02",
+    module: "Fithub",
+    status: "LAUNCHED",
+    efficiency: 13,
+    cohort: "13기",
+    keywords: "헬스케어·운동·헬스·기록",
+    message: "‘특별한’ 운동 정보 탐색 및 공유 플랫폼 서비스",
+    imageMain: "https://cmc.makeus.in/static/a3a8cf3616e9b570c2987e9d4935b674/f3dad/fithub.png",
+    linkIOS: "https://apps.apple.com/kr/app/fithub/id6450687753",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.proteam.fithub&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "36",
+    type: "PROJECT",
+    timestamp: "2022.02",
+    module: "올아카이브",
+    status: "LAUNCHED",
+    efficiency: 13,
+    cohort: "13기",
+    keywords: "유틸리티·링크관리·생산성·아카이빙",
+    message: "링크부터 스크린샷까지 손쉽게 관리하고 큐레이션하는 아카이빙 서비스",
+    imageMain: "https://cmc.makeus.in/static/47fb588dfedabde4c9c7982f17a7cc92/f3dad/allchive.png",
+    linkIOS: "https://apps.apple.com/kr/app/올카이브-all-chive/id6462470996",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.allchivemobile",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "37",
+    type: "PROJECT",
+    timestamp: "2022.02",
+    module: "오프너",
+    status: "LAUNCHED",
+    efficiency: 13,
+    cohort: "13기",
+    keywords: "엔터테인먼트·이벤트·티켓·네트워킹",
+    message: "오프라인 이벤트의 새로운 시대를 열 오픈오프",
+    imageMain: "https://cmc.makeus.in/static/fb7c621530f2e7caec1a96b040336346/f3dad/openoff.png",
+    linkIOS: "https://apps.apple.com/kr/app/오픈오프/id6451419698",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.opener.openoff&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "38",
+    type: "PROJECT",
+    timestamp: "2022.02",
+    module: "Qfeed",
+    status: "LAUNCHED",
+    efficiency: 13,
+    cohort: "13기",
+    keywords: "소셜·질문·SNS·익명",
+    message: "친구에 자신의 마음을 표현하고 싶지만 주변 친구들과의 관계가 망가질까 주저하지 마세요.",
+    imageMain: "https://cmc.makeus.in/static/957305bad50a82bcf60bb3f53e7259e1/f3dad/qfeed.png",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.qfeed&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "39",
+    type: "PROJECT",
+    timestamp: "2022.02",
+    module: "지금",
+    status: "LAUNCHED",
+    efficiency: 13,
+    cohort: "13기",
+    keywords: "금융·챌린지·습관",
+    message: "금융 루틴을 만들고 함께 도전하며 금융 습관을 만드는 챌린지 앱",
+    imageMain: "https://cmc.makeus.in/static/98c84a4c5e884e1532cd15fd84d1aa38/f3dad/now.png",
+    linkIOS: "https://apps.apple.com/kr/app/지금-지금-실천하는-금융-챌린지/id6461050868",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "41",
+    type: "PROJECT",
+    timestamp: "2022.02",
+    module: "Zenefit",
+    status: "LAUNCHED",
+    efficiency: 13,
+    cohort: "13기",
+    keywords: "공공·복지·청년·정책",
+    message: "개인마다 신청 가능한 모든 복지 정책의 예상 수혜금액을 계산해주는 혜택 관리 플랫폼",
+    imageMain: "https://cmc.makeus.in/static/925c661b1649073e4c630131adffead0/f3dad/zenefit.png",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "42",
+    type: "PROJECT",
+    timestamp: "2022.02",
+    module: "PLAYTE",
+    status: "LAUNCHED",
+    efficiency: 13,
+    cohort: "13기",
+    keywords: "라이프스타일·요리·레시피·커뮤니티",
+    message: "나만의 레시피를 업로드하고 나누고 즐기는 레시피 커뮤니티 서비스!",
+    imageMain: "https://cmc.makeus.in/static/9a1c8aaaaae548976adc90dc0975d988/f3dad/playte.png",
+    linkIOS: "https://apps.apple.com/kr/app/playte-플레이트/id6463757225",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "43",
+    type: "PROJECT",
+    timestamp: "2021.08",
+    module: "Runway",
+    status: "LAUNCHED",
+    efficiency: 12,
+    cohort: "12기",
+    keywords: "패션·쇼핑·지도",
+    message: "내 손안에 간편한 패션 쇼핑지도",
+    imageMain: "https://cmc.makeus.in/static/eff77f5ca7e8d0cd74b3631963f8c990/97f9b/runway.png",
+    linkIOS: "https://apps.apple.com/kr/app/런웨이-runway-내-손-안의-간편한-패션-쇼핑-지도/id1671808515",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.cmc12th.runway&hl=ko",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "44",
+    type: "PROJECT",
+    timestamp: "2021.08",
+    module: "프롬유",
+    status: "LAUNCHED",
+    efficiency: 12,
+    cohort: "12기",
+    keywords: "소셜·커플·일기·공유",
+    message: "일상을 공유하고 다른 커플의 이야기를 들을 수 있는 따뜻한 앱",
+    imageMain: "https://cmc.makeus.in/static/dfc3629b7c5bb268fbd40b6a2b0dea97/97f9b/fromu.png",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.fromu.fromu&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "45",
+    type: "PROJECT",
+    timestamp: "2021.08",
+    module: "필드메이트",
+    status: "LAUNCHED",
+    efficiency: 12,
+    cohort: "12기",
+    keywords: "비즈니스·업무관리·현장",
+    message: "고객별 기술 업무관리 어플",
+    imageMain: "https://cmc.makeus.in/static/442a6a267be5169a2c820762c29a995d/97f9b/fieldmate.png",
+    linkIOS: "https://apps.apple.com/kr/app/fieldmate/id6446427396",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "46",
+    type: "PROJECT",
+    timestamp: "2021.08",
+    module: "Workus",
+    status: "LAUNCHED",
+    efficiency: 12,
+    cohort: "12기",
+    keywords: "유틸리티·워크스페이스·지도·추천",
+    message: "나에게 딱 맞는 워크 스페이스 추천 서비스",
+    imageMain: "https://cmc.makeus.in/static/60c21dd4f3c473ee4b765b01625878f9/97f9b/workus.png",
+    linkIOS: "https://apps.apple.com/kr/app/workus/id6446238129",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "47",
+    type: "PROJECT",
+    timestamp: "2021.08",
+    module: "eatery",
+    status: "LAUNCHED",
+    efficiency: 12,
+    cohort: "12기",
+    keywords: "라이프스타일·맛집·기록·지도",
+    message: "Find eat, Mark eat, Write eat! eatery",
+    imageMain: "https://cmc.makeus.in/static/3521560af8d68eb95f6f2b7fe9138b0f/97f9b/eatery.png",
+    linkIOS: "https://apps.apple.com/kr/app/eatery-잇터리/id6446631695",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.bobplace.eatery&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "48",
+    type: "PROJECT",
+    timestamp: "2021.08",
+    module: "SOLE",
+    status: "LAUNCHED",
+    efficiency: 12,
+    cohort: "12기",
+    keywords: "라이프스타일·코스·기록·큐레이션",
+    message: "코스 기록 및 큐레이션 서비스",
+    imageMain: "https://cmc.makeus.in/static/063e95cd55aeefc29d63650d87c75d04/97f9b/sole.png",
+    linkIOS: "https://apps.apple.com/kr/app/sole-쏠-코스-기록-공유/id6446045060",
+    linkAndroid: "https://play.google.com/store/apps/details?id=cmc.sole.android&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "49",
+    type: "PROJECT",
+    timestamp: "2021.08",
+    module: "일편마다",
+    status: "LAUNCHED",
+    efficiency: 12,
+    cohort: "12기",
+    keywords: "소셜·부모·자녀·소통",
+    message: "부모와 자녀의 속마음 소통앱 - 일편마다",
+    imageMain: "https://cmc.makeus.in/static/d513174699b92788da9a7644ed85d7f5/97f9b/ilpyun.png",
+    linkIOS: "https://apps.apple.com/kr/app/부모와-자녀-간의-깊은-대화-일편마다/id6446275837",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "50",
+    type: "PROJECT",
+    timestamp: "2021.08",
+    module: "SAY",
+    status: "LAUNCHED",
+    efficiency: 12,
+    cohort: "12기",
+    keywords: "소셜·루틴·과몰입·커뮤니티",
+    message: "재미있고, 부담 없이, 함께하는! 컨셉 과몰입 루틴 서비스",
+    imageMain: "https://cmc.makeus.in/static/1cac9dd99fadb23ab79e20ddf4852f8f/97f9b/say.png",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "51",
+    type: "PROJECT",
+    timestamp: "2021.08",
+    module: "HEET",
+    status: "LAUNCHED",
+    efficiency: 12,
+    cohort: "12기",
+    keywords: "소셜·일상·힙·SNS",
+    message: "힙하게 만나는 나의 일상",
+    imageMain: "https://cmc.makeus.in/static/d174486c81b540d3c76045bfaf7aa0c1/97f9b/heet.png",
+    linkIOS: "https://apps.apple.com/kr/app/heet/id6446604089",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "52",
+    type: "PROJECT",
+    timestamp: "2021.08",
+    module: "STITCH",
+    status: "LAUNCHED",
+    efficiency: 12,
+    cohort: "12기",
+    keywords: "헬스케어·플로깅·조깅·운동",
+    message: "쉽고 간편한 플로깅을 위한 조깅 앱",
+    imageMain: "https://cmc.makeus.in/static/a839f460fe126eb82399afd10337fd8f/97f9b/stitch.png",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "53",
+    type: "PROJECT",
+    timestamp: "2021.08",
+    module: "지팡스",
+    status: "LAUNCHED",
+    efficiency: 12,
+    cohort: "12기",
+    keywords: "유틸리티·서비스·기타",
+    message: "지팡스",
+    imageMain: "https://cmc.makeus.in/static/599c25451e5f3298395df9e2aaac5a9e/97f9b/jipangs.png",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "54",
+    type: "PROJECT",
+    timestamp: "2021.02",
+    module: "롬롬교환소",
+    status: "LAUNCHED",
+    efficiency: 11,
+    cohort: "11기",
+    keywords: "커머스·물물교환·절약·경제",
+    message: "씀씀이를 줄이는 교환의 경제, 물물교환 서비스",
+    imageMain: "https://cmc.makeus.in/static/f3e2f789d86922fbdd6baeb266e25638/014a0/romrom.png",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "55",
+    type: "PROJECT",
+    timestamp: "2021.02",
+    module: "가치가자",
+    status: "LAUNCHED",
+    efficiency: 11,
+    cohort: "11기",
+    keywords: "여행·항공·교통약자",
+    message: "한눈에 쉽게 확인하는 항공 교통약자 서비스",
+    imageMain: "https://cmc.makeus.in/static/3cdd3d8f54896c53384485c6cc407c83/97f9b/together.png",
+    linkIOS: "https://apps.apple.com/kr/app/가치가자/id6444365638",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "56",
+    type: "PROJECT",
+    timestamp: "2021.02",
+    module: "Sparky",
+    status: "LAUNCHED",
+    efficiency: 11,
+    cohort: "11기",
+    keywords: "유틸리티·스크랩·아카이빙·정보",
+    message: "탭 세번으로 끝나는 스크랩",
+    imageMain: "https://cmc.makeus.in/static/ef91d4b421efedc112e36dcf79457d8c/97f9b/sparky.png",
+    linkIOS: "https://apps.apple.com/kr/app/sparky-탭-세-번으로-끝나는-스크랩/id6444295657",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "57",
+    type: "PROJECT",
+    timestamp: "2021.02",
+    module: "MELLY",
+    status: "LAUNCHED",
+    efficiency: 11,
+    cohort: "11기",
+    keywords: "라이프스타일·기록·장소·추억",
+    message: "소중한 사람과 함께쓰는 장소기반 기록장",
+    imageMain: "https://cmc.makeus.in/static/a064076bb88be1ccbb018e4812f2d961/97f9b/melly.png",
+    linkIOS: "https://apps.apple.com/kr/app/멜리-melly-장소-기반-추억-기록장/id6444202109",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "58",
+    type: "PROJECT",
+    timestamp: "2021.02",
+    module: "planter",
+    status: "LAUNCHED",
+    efficiency: 11,
+    cohort: "11기",
+    keywords: "라이프스타일·식물·매칭·반려식물",
+    message: "반려식물 케어 매칭 플랫폼",
+    imageMain: "https://cmc.makeus.in/static/7d3315af6aaffc26f2b5f43b4b7f6036/97f9b/planter.png",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "59",
+    type: "PROJECT",
+    timestamp: "2021.02",
+    module: "OEUVRE",
+    status: "LAUNCHED",
+    efficiency: 11,
+    cohort: "11기",
+    keywords: "엔터테인먼트·사진·작품·전시",
+    message: "사진이 작품이 되는 공간, OEUVRE",
+    imageMain: "https://cmc.makeus.in/static/15ea7d2755134206fb14162305caae4b/a764f/oeuvre.jpg",
+    linkIOS: "https://apps.apple.com/kr/app/oeuvre/id6443660575",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.curator.oeuvre&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "60",
+    type: "PROJECT",
+    timestamp: "2021.02",
+    module: "Chalkak",
+    status: "LAUNCHED",
+    efficiency: 11,
+    cohort: "11기",
+    keywords: "엔터테인먼트·필름카메라·사진·보정",
+    message: "Chalkak과 함께 필카를 더욱 쉽게 즐겨보세요.",
+    imageMain: "https://cmc.makeus.in/static/63ec13a30bc9ebb59324d5a6237d05dd/eac97/chalkak.png",
+    linkIOS: "https://apps.apple.com/kr/app/chalkak/id6444452971",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.chalkak&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "61",
+    type: "PROJECT",
+    timestamp: "2021.02",
+    module: "마이타민",
+    status: "LAUNCHED",
+    efficiency: 11,
+    cohort: "11기",
+    keywords: "헬스케어·멘탈케어·비타민·일기",
+    message: "매일 섭취하는 마음 비타민, 마이타민!",
+    imageMain: "https://cmc.makeus.in/static/ffd1d71199a5bec910668becf2dd1ee9/97f9b/mytamin.png",
+    linkIOS: "https://apps.apple.com/kr/app/mitamin/id6444240698",
+    linkAndroid: "https://play.google.com/store/apps/details?id=kr.ac.kpu.ce2017154024.mytamin&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "62",
+    type: "PROJECT",
+    timestamp: "2021.02",
+    module: "오늘의 조약돌",
+    status: "LAUNCHED",
+    efficiency: 11,
+    cohort: "11기",
+    keywords: "생산성·챌린지·동기부여·투두",
+    message: "미래의 나를 위해 오늘 내가 해야하는 일을 정리해보세요",
+    imageMain: "https://cmc.makeus.in/static/29f77cb7b960bd96e22a6e3a00cd75a9/afa5c/rock.png",
+    linkIOS: "https://apps.apple.com/kr/app/오늘의조약돌-pebbles-목표를-위한-오늘-관리/id6444320103",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.todaypebble.pebbles&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "63",
+    type: "PROJECT",
+    timestamp: "2021.02",
+    module: "내친소",
+    status: "LAUNCHED",
+    efficiency: 11,
+    cohort: "11기",
+    keywords: "소셜·매칭·친구",
+    message: "실제 친구가 직접 추천한 친구들을 소개받아봐!",
+    imageMain: "https://cmc.makeus.in/static/ed353862794b947a0e20579ad10aa507/97f9b/naechinso.png",
+    linkIOS: "https://apps.apple.com/kr/app/내친소-신뢰기반-친구-소개-소개팅-친구만들기/id1669032147",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.retrieverSalon.naechinso&pcampaignid=web_share",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "64",
+    type: "PROJECT",
+    timestamp: "2020.08",
+    module: "스럽",
+    status: "LAUNCHED",
+    efficiency: 10,
+    cohort: "10기",
+    keywords: "패션·커뮤니티·정보",
+    message: "셀럽의 핫한 아이템 정보를 물어보고 공유하는 커뮤니티, 스럽",
+    imageMain: "https://cmc.makeus.in/static/4a297327b7bf06b790f8463acf22cdfa/c7944/sluv.png",
+    linkIOS: "https://apps.apple.com/kr/app/스럽/id1635250785",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "65",
+    type: "PROJECT",
+    timestamp: "2020.08",
+    module: "밥플레이스",
+    status: "LAUNCHED",
+    efficiency: 10,
+    cohort: "10기",
+    keywords: "금융·미션·포인트·앱테크",
+    message: "밥 미션을 수행하고, 포인트를 적립하라!",
+    imageMain: "https://cmc.makeus.in/static/7fb0791171e005a4287eeb7225ee3743/97f9b/bob-place.png",
+    linkIOS: "https://apps.apple.com/kr/app/밥플레이스/id1634665858",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.bob_frontend&pli=1",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "66",
+    type: "PROJECT",
+    timestamp: "2020.08",
+    module: "한입",
+    status: "LAUNCHED",
+    efficiency: 10,
+    cohort: "10기",
+    keywords: "커머스·교류·굿즈·덕질",
+    message: "덕질을 하는 사용자들이 보다 편하게 굿즈를 나눔 혹은 판매할 수 있는 교류 플랫폼",
+    imageMain: "https://cmc.makeus.in/static/3c14e086a72a4f46215f91a5a1d88630/afa5c/hannib.png",
+    linkIOS: "https://apps.apple.com/kr/app/한입-hannip/id1635377027?l=en",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.hannib&hl=ko&gl=KR",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "67",
+    type: "PROJECT",
+    timestamp: "2020.08",
+    module: "ATRACKER",
+    status: "LAUNCHED",
+    efficiency: 10,
+    cohort: "10기",
+    keywords: "커리어·취업·관리·일정",
+    message: "취준 관리 앱",
+    imageMain: "https://cmc.makeus.in/static/7d80ac7da62cdbbc418a84b70243b47b/0c2c3/atracker.png",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "68",
+    type: "PROJECT",
+    timestamp: "2020.08",
+    module: "원케이크",
+    status: "LAUNCHED",
+    efficiency: 10,
+    cohort: "10기",
+    keywords: "라이프스타일·케이크·주문·기념일",
+    message: "원하는 지역의 케이크 가게들을 모아보고 커스텀 케이크를 간편하게 주문할 수 있도록 돕는 서비스!",
+    imageMain: "https://cmc.makeus.in/static/40afc63c8412bf93cb5352a88a054e79/afa5c/onecake.png",
+    linkIOS: "https://apps.apple.com/kr/app/onecake/id1635032032",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.onecake_frontend",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "69",
+    type: "PROJECT",
+    timestamp: "2020.08",
+    module: "마침표",
+    status: "LAUNCHED",
+    efficiency: 10,
+    cohort: "10기",
+    keywords: "헬스케어·마음관리·성장·자아",
+    message: "성장하고 변화하는 진짜 나를 알아보며 행복해지기 위한 마음관리 어플",
+    imageMain: "https://cmc.makeus.in/static/d036d8489b683cad204121c15a9432ad/ec1be/machimpyo.png",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "70",
+    type: "PROJECT",
+    timestamp: "2020.08",
+    module: "와플",
+    status: "LAUNCHED",
+    efficiency: 10,
+    cohort: "10기",
+    keywords: "생산성·일정·장소·아카이빙",
+    message: "일정 공유 장소 아카이빙 서비스",
+    imageMain: "https://cmc.makeus.in/static/80686368c774b4affb77fbbc5a8aeae8/7fd6f/waffle.png",
+    linkIOS: "https://apps.apple.com/kr/app/와플-일정-공유-장소-아카이빙-서비스/id1635155102",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.wapple.android",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "71",
+    type: "PROJECT",
+    timestamp: "2020.08",
+    module: "BidiT",
+    status: "LAUNCHED",
+    efficiency: 10,
+    cohort: "10기",
+    keywords: "커머스·중고거래·경매·플랫폼",
+    message: "국내에는 없었던 새로운 중고거래 플랫폼",
+    imageMain: "https://cmc.makeus.in/static/e0405b5d19e3428ab5a15f62caa4a784/00054/bidit.png",
+    linkAndroid: "https://play.google.com/store/apps/details?id=com.alexk.bidit",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "72",
+    type: "PROJECT",
+    timestamp: "2020.08",
+    module: "작심친구",
+    status: "LAUNCHED",
+    efficiency: 10,
+    cohort: "10기",
+    keywords: "자기계발·챌린지·동기부여·목표",
+    message: "함께 이기는 윈윈 챌린지",
+    imageMain: "https://cmc.makeus.in/static/6c74fbf2c148f3db9445580303f4b0f2/00054/friend.png",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "73",
+    type: "PROJECT",
+    timestamp: "2020.08",
+    module: "FINPO",
+    status: "LAUNCHED",
+    efficiency: 10,
+    cohort: "10기",
+    keywords: "공공·정책·청년·알림",
+    message: "나만의 청년정책 알림 서비스",
+    imageMain: "https://cmc.makeus.in/static/9093ffd9c2505ea37a7bd59b7e395788/00054/finpo.png",
+    coordinates: { x: 0, y: 0, z: 0 }
+  },
+  {
+    id: "74",
+    type: "PROJECT",
+    timestamp: "2020.08",
+    module: "finder",
+    status: "LAUNCHED",
+    efficiency: 10,
+    cohort: "10기",
+    keywords: "소셜·MBTI·Q&A·네트워킹",
+    message: "MBTI 기반 Q&A 네트워킹 서비스",
+    imageMain: "https://cmc.makeus.in/static/f758eff786f6766811c5b84d80ea495e/ec33f/finder.png",
+    coordinates: { x: 0, y: 0, z: 0 }
+  }
+];
+
+export const generateSystemLogs = async (count: number = 73): Promise<SystemLog[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(PROJECT_DATA);
+    }, 800);
+  });
+};
+
+// --- GEMINI AI CHAT & FUNCTION CALLING ---
+
+// Tools Definition
+const filterToolDeclaration: FunctionDeclaration = {
+  name: 'filter_projects',
+  description: 'Filter the project list based on a keyword or topic (e.g., "finance", "health", "17th cohort").',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      keyword: {
+        type: Type.STRING,
+        description: 'The keyword to filter projects by.',
+      },
+    },
+    required: ['keyword'],
+  },
+};
+
+const resetFilterToolDeclaration: FunctionDeclaration = {
+  name: 'reset_filter',
+  description: 'Reset the project filter to show all projects.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {},
+  },
+};
+
+export const sendMessageToGemini = async (
+  history: { role: string; parts: { text: string }[] }[],
+  userMessage: string
+) => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+  // Create a summary of available projects for the system prompt
+  // We don't send the entire JSON to save tokens, just a summary of modules and keywords
+  const projectSummary = PROJECT_DATA.map(p => 
+    `- ${p.module} (${p.cohort}): ${p.keywords}`
+  ).join('\n');
+
+  const systemInstruction = `
+    당신은 CMC(Central Makeus Challenge) 아카이브의 AI 큐레이터입니다.
+    당신의 목표는 사용자들이 미래지향적인 3D IT 프로젝트 아카이브를 탐색할 수 있도록 돕는 것입니다.
+    다음과 같은 도구를 사용할 수 있습니다.
+    1. 'filter_projects(keyword)': 사용자가 특정 유형의 프로젝트, 코호트 또는 주제를 보고 싶어할 때 호출합니다. 가장 관련성이 높은 단일 키워드를 추출합니다.
+    2. 'reset_filter()': 사용자가 "모든" 프로젝트를 보거나 보기를 "초기화"하려는 경우 호출합니다.
+    
+    사용 가능한 프로젝트 컨텍스트 요약:
+    ${projectSummary}
+    동작 규칙:
+    - 사용자가 추천을 요청하면 사용자의 관심사와 일치하는 키워드를 선택하고 'filter_projects'를 호출합니다.
+    - 사용자가 특정 코호트(예: "15기")에 대해 문의하면 "15기"를 사용하여 'filter_projects'를 호출합니다.
+    - 답변은 간결하고 전문적이며, 약간 미래지향적이거나 로봇 같은 느낌을 유지하세요(예: "필터링 프로토콜이 시작되었습니다...", "아카이브에 접근하는 중입니다...").
+    - 프로젝트 목록을 텍스트로만 나열하지 마세요. 반드시 도구를 사용하여 앱을 시각적으로 업데이트해야 합니다.
+  `;
+
+  try {
+    const chat = ai.chats.create({
+      model: 'gemini-3-flash-preview',
+      config: {
+        systemInstruction: systemInstruction,
+        tools: [{ functionDeclarations: [filterToolDeclaration, resetFilterToolDeclaration] }],
+      },
+      history: history.map(h => ({
+        role: h.role,
+        parts: h.parts,
+      })),
+    });
+
+    const result = await chat.sendMessage({ message: userMessage });
+    return result;
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    throw error;
+  }
+};
+
+export const generateWelcomeMessage = async () => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
+  // Reuse the same project summary for consistency
+  const projectSummary = PROJECT_DATA.map(p => 
+    `- ${p.module} (${p.cohort}): ${p.keywords}`
+  ).join('\n');
+
+  const systemInstruction = `
+    당신은 CMC 아카이브의 AI 큐레이터입니다.
+    당신의 목표는 미래지향적이고 간략한 시스템 현황 보고서를 제공하고 사용자를 환영하는 것입니다.
+    배경 정보:
+    - 총 프로젝트 수: ${PROJECT_DATA.length}
+    - 총 코호트 수: 17개 (11기부터 17기까지)
+    - 주요 테마: AI, 라이프스타일, 금융, 사회
+    지침:
+    - 짧은 단락 하나(최대 2문장)를 작성하세요.
+    - 스타일: 미래지향적이고 로봇 같지만 정중하게 작성하세요.
+    - 내용: 아카이브 데이터가 로드되어 조회 준비가 완료되었음을 알리세요.
+    - 이 메시지 작성에는 어떤 도구도 사용하지 마세요.
+  `;
+
+  try {
+    const result = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      config: {
+        systemInstruction: systemInstruction,
+      },
+      contents: [{ role: 'user', parts: [{ text: "SYSTEM_INIT_SEQUENCE_START" }] }],
+    });
+    
+    return result.text || "SYSTEM ONLINE. ARCHIVE DATA LOADED.";
+  } catch (error) {
+    console.error("Welcome Message Error:", error);
+    return "SYSTEM ONLINE. ARCHIVE DATA LOADED. AWAITING COMMAND.";
+  }
+};

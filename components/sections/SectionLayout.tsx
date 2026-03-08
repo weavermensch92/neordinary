@@ -23,6 +23,7 @@ export const SectionLayout: React.FC<SectionLayoutProps> = ({
   exitDirection = 'left'
 }) => {
   const [phase, setPhase] = useState(0);
+  const [isAnimationComplete, setIsAnimationComplete] = useState(false);
 
   // Split title
   const titleParts = title ? title.split(' ') : [];
@@ -43,9 +44,16 @@ export const SectionLayout: React.FC<SectionLayoutProps> = ({
     // Wait 2000ms for the video transition to play
     timer = setTimeout(() => {
       setPhase(5);
+      // Wait for stagger animations to finish before unlocking scroll
+      setTimeout(() => {
+        setIsAnimationComplete(true);
+      }, 1500); // 2000ms (video) + 1500ms (stagger) = 3.5s total lock
     }, 2000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      setIsAnimationComplete(false);
+    };
   }, [isActive]);
 
   useEffect(() => {
@@ -76,7 +84,11 @@ export const SectionLayout: React.FC<SectionLayoutProps> = ({
   const currentState = isExiting ? (exitDirection === 'left' ? 'exitLeft' : 'exitRight') : (isActive && phase === 5 ? 'visible' : 'hidden');
 
   return (
-    <section ref={sectionRef} className="min-h-screen w-screen flex flex-col justify-start px-6 md:px-[4rem] box-border max-w-[150rem] mx-auto relative bg-transparent overflow-hidden font-sans">
+    <section
+      ref={sectionRef}
+      data-scroll-locked={!isAnimationComplete}
+      className="min-h-[110vh] w-screen flex flex-col justify-start px-6 md:px-[4rem] box-border max-w-[150rem] mx-auto relative bg-transparent overflow-hidden font-sans"
+    >
 
       {/* Brutalist Grid Lines */}
       <motion.div

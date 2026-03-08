@@ -176,6 +176,15 @@ const App: React.FC = () => {
         e.preventDefault();
 
         if (canTransitionRef.current) {
+          // Check for scroll lock before proceeding with forward transition
+          const isScrollLocked = currentSectionEl.getAttribute('data-scroll-locked') === 'true';
+
+          if (e.deltaY > 0 && isScrollLocked) {
+            // Forward transition attempting but animation not complete - BLOCK IT
+            e.preventDefault();
+            return;
+          }
+
           canTransitionRef.current = false; // consume it so we don't double trigger
 
           if (e.deltaY > 0 && isAtBottom) {
@@ -227,6 +236,15 @@ const App: React.FC = () => {
         e.preventDefault();
 
         if (e.key === 'ArrowRight' || keyPressCount.current > 0) {
+          // Check for scroll lock before proceeding with forward transition
+          const isScrollLocked = currentSectionEl.getAttribute('data-scroll-locked') === 'true';
+
+          if (isScrollLocked) {
+            // Forward navigation Attempting but animation not complete - BLOCK IT
+            keyPressCount.current = 0;
+            return;
+          }
+
           keyPressCount.current = 0;
           const studioPendingSection = currentSectionEl.querySelector('.studio-pending');
           if (studioPendingSection && e.key !== 'ArrowRight') {
