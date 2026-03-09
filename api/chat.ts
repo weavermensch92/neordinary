@@ -8,13 +8,13 @@ UMC (University MakeUs Challenge)는 대학생들의 IT 역량 강화를 위한 
 `;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    const rawKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+    const rawKey = process.env.VITE_PROPOSAL_API || process.env.OPENAI_API_KEY;
     const apiKey = rawKey?.trim();
 
     if (!apiKey) {
         return res.status(500).json({ 
             error: 'OPENAI_API_KEY_NOT_FOUND',
-            details: 'VITE_OPENAI_API_KEY is missing. Please check your environment variables.' 
+            details: 'VITE_PROPOSAL_API is missing. Please check your environment variables.' 
         });
     }
 

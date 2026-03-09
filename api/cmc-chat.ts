@@ -2,13 +2,13 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // Standalone CMC AI handler (API Key Updated)
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    const rawKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+    const rawKey = process.env.VITE_PROPOSAL_API || process.env.OPENAI_API_KEY;
     const apiKey = rawKey?.trim();
 
     if (!apiKey) {
         return res.status(500).json({ 
             error: 'OPENAI_API_KEY_NOT_FOUND',
-            details: 'VITE_OPENAI_API_KEY is missing. Please check your environment variables.' 
+            details: 'VITE_PROPOSAL_API is missing. Please check your environment variables.' 
         });
     }
 
