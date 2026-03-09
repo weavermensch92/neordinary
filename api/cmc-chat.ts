@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-// Standalone CMC AI handler
+// Standalone CMC AI handler (API Key Updated)
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     const rawKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
     const apiKey = rawKey?.trim();
