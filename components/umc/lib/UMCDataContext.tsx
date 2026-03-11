@@ -7,14 +7,23 @@ interface UMCDataContextType {
     genData: { [key: string]: ProcessedItem[] };
     connectionStatus: 'CONNECTED' | 'SYNCING' | 'ERROR';
     fetchGenData: () => Promise<void>;
+    language: 'en' | 'ko';
+    setLanguage: React.Dispatch<React.SetStateAction<'en' | 'ko'>>;
 }
 
 const UMCDataContext = createContext<UMCDataContextType | undefined>(undefined);
 
-const PRELOADED_ASSETS: Record<string, { url: string | null, name: string, description?: string }> = {
-    'gen5-0': { name: 'About Me', description: '다양한 나, 다양한 관계의 시작', url: null },
-    'gen5-13': { name: '이뷰 (LIVIEW)', description: '지도를 통해 한 눈에 보는 내 사진기록', url: '/08ba2f39-3df3-42a1-a749-ead845c0e98b.png' },
-    'gen8-0': { name: '미뷰', description: '맛집 고민 끝! 정답은 미뷰', url: '/gen8-sec01.png' },
+const PRELOADED_ASSETS: Record<string, { url: string | null, name: string, nameEn?: string, description?: string, descriptionEn?: string }> = {
+    'gen5-0': { name: 'About Me', nameEn: 'About Me', description: '다양한 나, 다양한 관계의 시작', descriptionEn: 'Various me, the beginning of various relations', url: null },
+    'gen5-13': { name: '이뷰 (LIVIEW)', nameEn: 'LIVIEW', description: '지도를 통해 한 눈에 보는 내 사진기록', descriptionEn: 'My photo records at a glance through the map', url: '/08ba2f39-3df3-42a1-a749-ead845c0e98b.png' },
+    'gen8-0': { name: '밥ZIP - 실시간 캠퍼스 맛집 정보 서비스', nameEn: 'BabZIP - Real-time campus restaurant info service', description: '실시간 캠퍼스 맛집 정보 서비스', descriptionEn: 'Real-time campus restaurant information service', url: null },
+    'gen8-1': { name: 'PEER : RE - 건강한 협업을 위한 신뢰형 동료평가 서비스', nameEn: 'PEER : RE - Trust-based peer review service', description: '건강한 협업을 위한 신뢰형 동료평가 서비스', descriptionEn: 'Trust-based peer review service for healthy collaboration', url: null },
+    'gen8-2': { name: '고면친구 - 세상의 모든 고민이 거쳐가는 공간', nameEn: 'Gomyeon-Chingu - A space for all worries', description: '세상의 모든 고민이 거쳐가는 공간', descriptionEn: 'A space where all the worlds worries pass through', url: null },
+    'gen8-3': { name: '하고싶다 | 나만의 경험을 가꾸는 일정 관리 서비스', nameEn: 'Hagosipta | Personal experience scheduler', description: '나만의 경험을 가꾸는 일정 관리 서비스', descriptionEn: 'Schedule management service that cultivates my own experience', url: null },
+    'gen8-4': { name: 'Map To Zero - 제로웨이스트 샵 조회 플랫폼', nameEn: 'Map To Zero - Zero-waste shop platform', description: '제로웨이스트 샵 조회 플랫폼', descriptionEn: 'Zero-waste shop lookup platform', url: null },
+    'gen8-5': { name: '동네힙 - 헬스 케어 플랫폼', nameEn: 'Dongnae-Hip - Health care platform', description: '헬스 케어 플랫폼', descriptionEn: 'Health care platform', url: null },
+    'gen8-6': { name: 'MEME (메메) : 나만의 메이크업 메이트', nameEn: 'MEME : Your own makeup mate', description: '나만의 메이크업 메이트', descriptionEn: 'Your own makeup mate', url: null },
+    'gen8-13': { name: '미뷰', nameEn: 'MIVIEW', description: '맛집 고민 끝! 정답은 미뷰', descriptionEn: 'No more restaurant worries! The answer is MIVIEW', url: '/gen8-sec01.png' },
 };
 
 const createPlaceholders = (count: number, gen: string) => Array.from({ length: count }).map((_, i) => {
@@ -23,7 +32,9 @@ const createPlaceholders = (count: number, gen: string) => Array.from({ length: 
     return {
         id: `placeholder-${gen}-${i}`,
         name: preload ? preload.name : "INITIALIZING...",
+        nameEn: preload?.nameEn || "INITIALIZING...",
         description: preload?.description || "WAITING_FOR_DATA...",
+        descriptionEn: preload?.descriptionEn || "WAITING_FOR_DATA...",
         genId: `GEN_${gen.toUpperCase()}_${i}`,
         code: "PENDING",
         imageUrl: preload ? preload.url : null,
@@ -42,6 +53,7 @@ export const UMCDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
         gen8: createPlaceholders(65, 'gen8'),
     }));
     const [connectionStatus, setConnectionStatus] = useState<'CONNECTED' | 'SYNCING' | 'ERROR'>('CONNECTED');
+    const [language, setLanguage] = useState<'en' | 'ko'>('ko'); // Default to 'ko' as it's the "loaded state"
 
     const processNotionItems = useCallback((rawData: any[], generationPrefix: string): ProcessedItem[] => {
         if (!Array.isArray(rawData)) return [];
@@ -52,16 +64,34 @@ export const UMCDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
             let teamId = String(i + 1).padStart(2, '0');
             let imageUrl = null;
             let figmaUrl = null;
+            let nameEn: string | null = null;
+            let descriptionEn: string | null = null;
 
             if (item.properties) {
                 const nameProp = Object.values(item.properties).find((p: any) => p.type === 'title');
                 if (nameProp) name = getNotionText(nameProp);
+
+                // English Field Extraction
+                const nameEnProp = Object.entries(item.properties).find(([k, v]: any) => {
+                    const key = k.toLowerCase();
+                    return (key.includes('name') || key.includes('title') || key.includes('제목') || key.includes('이름')) && 
+                           (key.includes('en') || key.includes('english') || key.includes('영어') || key.includes('영문'));
+                });
+                if (nameEnProp) nameEn = getNotionText(nameEnProp[1]);
 
                 const descEntry = Object.entries(item.properties).find(([k, v]: any) => {
                     const key = k.toLowerCase();
                     return v.type === 'rich_text' && (key.includes('description') || key.includes('intro') || key.includes('설명') || key.includes('소개'));
                 });
                 if (descEntry) description = getNotionText(descEntry[1]);
+
+                const descEnEntry = Object.entries(item.properties).find(([k, v]: any) => {
+                    const key = k.toLowerCase();
+                    return v.type === 'rich_text' && 
+                           (key.includes('description') || key.includes('intro') || key.includes('설명') || key.includes('소개')) &&
+                           (key.includes('en') || key.includes('english') || key.includes('영어') || key.includes('영문'));
+                });
+                if (descEnEntry) descriptionEn = getNotionText(descEnEntry[1]);
 
                 if (item.cover) {
                     if (item.cover.type === 'external') imageUrl = item.cover.external.url;
@@ -92,7 +122,9 @@ export const UMCDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
             return {
                 id: item.id,
                 name,
+                nameEn: nameEn || undefined,
                 description: description || "No description available.",
+                descriptionEn: descriptionEn || undefined,
                 genId: `UMC_${generationPrefix}_gen_${teamId}`,
                 code: `TM-${teamId}`,
                 imageUrl,
@@ -205,7 +237,7 @@ export const UMCDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }, []);
 
     return (
-        <UMCDataContext.Provider value={{ genData, connectionStatus, fetchGenData }}>
+        <UMCDataContext.Provider value={{ genData, connectionStatus, fetchGenData, language, setLanguage }}>
             {children}
         </UMCDataContext.Provider>
     );

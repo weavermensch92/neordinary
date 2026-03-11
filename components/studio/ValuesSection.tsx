@@ -5,7 +5,7 @@ import { TextReveal } from './TextReveal';
 const VALUES = [
     {
         id: "01",
-        title: ["UNIVERSITY", "MAKEUS CHALLENGE"],
+        title: ["UNIVERSITY", "MAKEUS", "CHALLENGE"],
         desc: [
             "UMC represents the highest concentration of emerging student talent across Korea and Asia. With 55 universities, nearly 4,000 members, and over 600 new students joining each quarter, its momentum is unmistakable. Schools continue to expand, and the network deepens with every cycle. In this environment, AI adoption is not gradual — it is immediate and immersive.",
             "Students experiment boldly, iterate rapidly, and internalize new technologies faster than most established workplaces. UMC is where the future workforce trains at future speed."
@@ -13,14 +13,14 @@ const VALUES = [
     },
     {
         id: "02",
-        title: ["CENTRAL", "MAKUS CHALLENGE"],
+        title: ["CENTRAL", "MAKEUS", "CHALLENGE"],
         desc: [
             "CMC is a gathering of builders who have already proven themselves. Within its network are teams that have scaled to Series B stage companies and ₩100 billion valuations, alongside founders formally certified by national startup programs. These milestones are signals — of skill, resilience, and execution under pressure. CMC represents a concentration of practitioners who build products that survive real markets. It is not a club. It is a benchmark of capability."
         ]
     },
     {
         id: "03",
-        title: ["GRIDGE", "Gig-Bridge"],
+        title: ["GRIDGE", "GIG-", "BRIDGE"],
         desc: [
             "GRIDGE is Korea’s structured IT workforce management system. Unlike traditional platforms that simply connect clients with freelancers, GRIDGE assumes responsibility for deliverables and performance. Work is decomposed into precise execution units, and specialists are matched at the capability level — even down to the smallest task scope. This results in higher accountability, clearer output control, and sustained client satisfaction.",
             "With the introduction of Observer, GRIDGE extends management to external development teams, leveraging AI to automate task allocation, monitoring, and coordination. The model is shifting from workforce brokerage to development MSP — where AI augments human execution and operational clarity replaces uncertainty."
@@ -28,7 +28,7 @@ const VALUES = [
     },
     {
         id: "04",
-        title: ["GRIDGE", "AiOPS"],
+        title: ["GRIDGE", "AI", "OPS"],
         desc: [
             "GRIDGE AiOPS is an AI Operating System for modern enterprises. It optimizes AI usage efficiency, reinforces team-level capability, and manages AI agents as coordinated digital workforce units. Rather than leaving AI adoption fragmented, AiOPS structures it.",
             "The service pairs organizations with the right AI experts, guiding full-scale AX and accelerating the transition toward agent-enabled teams. Individual employees strengthen their AI competence, while leadership gains visibility and control over enterprise-wide AI utilization. GRIDGE AiOPS is not a consulting add-on — it is an AI MSP that governs performance, productivity, and autonomous execution across the company."
@@ -36,8 +36,12 @@ const VALUES = [
     }
 ];
 
-export const ValuesSection: React.FC = () => {
-    const containerRef = useRef<HTMLDivElement>(null);
+interface ValuesSectionProps {
+    containerRef?: React.RefObject<HTMLDivElement>;
+}
+
+export const ValuesSection: React.FC<ValuesSectionProps> = ({ containerRef }) => {
+    const containerRefInternal = useRef<HTMLDivElement>(null);
     const sliderRef = useRef<HTMLDivElement>(null);
 
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -53,7 +57,8 @@ export const ValuesSection: React.FC = () => {
     const cursorY = useSpring(mouseY, { stiffness: 500, damping: 28 });
 
     const { scrollYProgress } = useScroll({
-        target: containerRef,
+        target: containerRefInternal,
+        container: containerRef,
         offset: ["start end", "end start"]
     });
 
@@ -129,14 +134,14 @@ export const ValuesSection: React.FC = () => {
     return (
         <section
             id="values"
-            ref={containerRef}
+            ref={containerRefInternal}
             className="relative w-full bg-brand-bg text-brand-red py-24 md:py-32 overflow-hidden z-20 border-t border-brand-red/10"
         >
             <div className="w-full max-w-[96%] mx-auto px-4 relative">
 
                 <div className="relative min-h-[60vh] flex flex-col md:block mb-32 md:mb-48">
                     <div className="relative z-20 text-left mix-blend-normal pointer-events-none">
-                        <div className="text-[14vw] md:text-[11vw] font-display leading-[0.8] tracking-tighter uppercase text-brand-red">
+                        <div className="text-[10vw] md:text-[7vw] font-display leading-[0.65] tracking-tighter uppercase text-brand-red">
                             <span className="block"><TextReveal delay={0}>THE FLAGS NE(O)RDs</TextReveal></span>
                             <span className="block"><TextReveal delay={0.2}>STAND FOR</TextReveal></span>
                         </div>
@@ -211,7 +216,7 @@ export const ValuesSection: React.FC = () => {
                         >
                             {VALUES.map((val, i) => (
                                 <div key={val.id} className="shrink-0 w-full flex flex-col justify-start">
-                                    <h3 className={`text-[12vw] md:text-[9vw] font-display leading-[0.75] tracking-tighter uppercase text-brand-red transition-opacity duration-500 ${currentIndex !== i ? 'hidden md:block opacity-20 mask-linear-gradient translate-x-4' : 'opacity-100'}`}>
+                                    <h3 className={`text-[8vw] md:text-[5.5vw] font-display leading-[0.6] tracking-tighter uppercase text-brand-red transition-opacity duration-500 ${currentIndex !== i ? 'hidden md:block opacity-20 mask-linear-gradient translate-x-4' : 'opacity-100'}`}>
                                         {val.title.map((line, j) => (
                                             <span key={j} className="block whitespace-nowrap overflow-hidden"><TextReveal delay={j * 0.2}>{line}</TextReveal></span>
                                         ))}
@@ -238,7 +243,7 @@ export const ValuesSection: React.FC = () => {
                                     <div className="font-sans text-lg md:text-xl leading-tight space-y-6 font-medium uppercase tracking-wide">
                                         {currentVal.desc.map((d, i) => (
                                             <p key={i}>
-                                                <TextReveal delay={0.2} glitchDelay={0.2 + (i * 0.15)} speed="fast" mode="sentence">{d}</TextReveal>
+                                                <TextReveal delay={0.2} glitchDelay={0.2 + (i * 0.15)} speed="fast" mode="word">{d}</TextReveal>
                                             </p>
                                         ))}
                                     </div>

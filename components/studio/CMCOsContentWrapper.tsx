@@ -24,7 +24,7 @@ export const CMCOsContentWrapper: React.FC<CMCOsContentWrapperProps> = ({ onClos
     const containerRef = useRef<HTMLDivElement>(null);
     const [isExiting, setIsExiting] = useState(false);
     const hasCalledClose = useRef(false);
-
+    const [language, setLanguage] = useState<'en' | 'ko'>('en'); // default English
     const handleSequenceComplete = () => setLoadingComplete(true);
 
     const handleClose = () => {
@@ -268,7 +268,28 @@ export const CMCOsContentWrapper: React.FC<CMCOsContentWrapperProps> = ({ onClos
                         <>
                             {/* Header / HUD */}
                             <div className="absolute top-16 left-12 z-50 pointer-events-none mt-4">
-                                <div className="flex flex-col gap-1">
+                                <div className="relative flex flex-col gap-1">
+                                    {/* Pill Switch Language Toggle */}
+                                    <div className="absolute -top-10 left-0 flex flex-col items-center gap-0.5">
+                                        <div 
+                                            onClick={() => setLanguage(prev => prev === 'en' ? 'ko' : 'en')}
+                                            className={`
+                                                pointer-events-auto cursor-pointer 
+                                                w-10 h-5 rounded-full border border-[#E60023] p-[2px] 
+                                                flex items-center transition-all duration-500 shadow-inner
+                                                ${language === 'en' ? 'bg-[#E60023]' : 'bg-white'}
+                                            `}
+                                        >
+                                            <div className={`
+                                                w-3.5 h-3.5 rounded-full transition-all duration-500 shadow-md
+                                                ${language === 'en' ? 'bg-white translate-x-[20px]' : 'bg-[#E60023] translate-x-0'}
+                                            `} />
+                                        </div>
+                                        <div className="text-[10px] font-mono font-bold text-[#E60023] opacity-60">
+                                            {language === 'en' ? 'EN' : 'KO'}
+                                        </div>
+                                    </div>
+                                    
                                     <h1 className="text-6xl font-bold tracking-[-0.05em] text-[#E60023]">CMC</h1>
                                     <span className="text-xs font-mono text-[#E60023]/70">a.k.a Central_Makeus_Challenge from NE(O)RDINARY, est 2019</span>
                                 </div>
@@ -334,12 +355,21 @@ export const CMCOsContentWrapper: React.FC<CMCOsContentWrapperProps> = ({ onClos
 
                                         let baseX = 0, baseY = 0, baseZ = 0, absDist = 0, opacity = 1, blurAmount = 0, isFilteredOut = false;
 
+                                        let lift = 0;
+                                        const PEAK_LIFT = 150; 
+                                        
+                                        // Calculate relative distance for positioning
+                                        let distance = i - activeIndex;
+                                        while (distance > len / 2) distance -= len;
+                                        while (distance < -len / 2) distance += len;
+                                        absDist = Math.abs(distance);
+
                                         if (isFiltered) {
                                             if (filteredIndices.includes(i)) {
                                                 const visualIndex = filteredIndices.indexOf(i);
                                                 const visualActiveIndex = filteredIndices.indexOf(activeIndex);
                                                 
-                                                let distance = visualIndex - visualActiveIndex;
+                                                distance = visualIndex - visualActiveIndex;
                                                 const fLen = filteredIndices.length;
                                                 while (distance > fLen / 2) distance -= fLen;
                                                 while (distance < -fLen / 2) distance += fLen;
@@ -353,11 +383,7 @@ export const CMCOsContentWrapper: React.FC<CMCOsContentWrapperProps> = ({ onClos
                                                 if (absDist > 10) return null; 
                                             } else {
                                                 isFilteredOut = true;
-                                                let distance = i - activeIndex;
-                                                while (distance > len / 2) distance -= len;
-                                                while (distance < -len / 2) distance += len;
-                                                
-                                                absDist = Math.abs(distance);
+                                                // distance and absDist are already calculated above for non-filtered logic
                                                 if (absDist > 12) return null;
 
                                                 const SPACING = 160;
@@ -367,11 +393,7 @@ export const CMCOsContentWrapper: React.FC<CMCOsContentWrapperProps> = ({ onClos
                                                 opacity = 0.5; blurAmount = 1;
                                             }
                                         } else {
-                                            let distance = i - activeIndex;
-                                            while (distance > len / 2) distance -= len;
-                                            while (distance < -len / 2) distance += len;
-                                            
-                                            absDist = Math.abs(distance);
+                                            // distance and absDist are already calculated above
                                             if (absDist > 12) return null;
 
                                             const SPACING = 160;
@@ -380,12 +402,9 @@ export const CMCOsContentWrapper: React.FC<CMCOsContentWrapperProps> = ({ onClos
                                             baseZ = distance * -100; 
                                         }
 
-                                        let lift = 0;
-                                        const PEAK_LIFT = 150; 
-                                        
-                                        if (absDist === 0 && !isFilteredOut) lift = PEAK_LIFT;
-                                        else if (absDist === 1 && !isFilteredOut) lift = PEAK_LIFT * 0.5;
-                                        else if (absDist === 2 && !isFilteredOut) lift = PEAK_LIFT * 0.25;
+                                        if (distance === 0 && !isFilteredOut) lift = PEAK_LIFT;
+                                        else if (distance === 1 && !isFilteredOut) lift = PEAK_LIFT * 0.5;
+                                        else if (distance === 2 && !isFilteredOut) lift = PEAK_LIFT * 0.25;
 
                                         if (!isFilteredOut) {
                                             if (absDist > 5) opacity = 1 - ((absDist - 5) * 0.25);
@@ -407,6 +426,7 @@ export const CMCOsContentWrapper: React.FC<CMCOsContentWrapperProps> = ({ onClos
                                                 opacity={opacity}
                                                 blur={blurAmount}
                                                 isFilteredOut={isFilteredOut}
+                                                language={language}
                                             />
                                         );
                                     })}
@@ -425,6 +445,7 @@ export const CMCOsContentWrapper: React.FC<CMCOsContentWrapperProps> = ({ onClos
                                                     switchLayer('detail');
                                                 }}
                                                 isLocked={isPaused}
+                                                language={language}
                                             />
                                         </div>
                                     </div>

@@ -114,7 +114,7 @@ export const StudioContentWrapper: React.FC<StudioContentWrapperProps> = ({ onFo
                     animate={isExiting ? { y: exitDirection === 'left' ? 0 : "40%", opacity: 0, transition: { duration: 0.6, ease: "easeIn" } } : { y: 0, opacity: 1 }}
                 >
                     {hasTriggeredStart ? (
-                        <LoadingSequence onComplete={handleSequenceComplete} />
+                        <LoadingSequence onComplete={handleSequenceComplete} containerRef={containerRef} />
                     ) : (
                         <div className="w-full h-screen bg-[#EBEBEB]" />
                     )}

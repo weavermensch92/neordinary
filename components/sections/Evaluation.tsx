@@ -20,9 +20,9 @@ export const Evaluation = ({ onNavigate, onTogglePause, isActive, isExiting, exi
           {/* UMC Section - Brutalist White Block */}
           <div className="bg-white text-black p-12 lg:p-16 relative min-h-[37.5rem] flex flex-col justify-between group overflow-hidden stagger-item">
             <div className="absolute top-0 right-0 w-2/3 h-full bg-black/5 pointer-events-none" style={{ clipPath: 'polygon(100% 0, 0% 100%, 100% 100%)' }}></div>
-            <div className="absolute top-8 right-8 text-black/5 text-[10rem] font-black leading-none pointer-events-none select-none">UMC</div>
+            <div className="absolute top-8 right-8 text-black/5 text-[10rem] font-black leading-none pointer-events-none select-none transition-all duration-700 group-hover:text-black/60 group-hover:scale-110 group-hover:z-20 group-hover:opacity-100 opacity-100">UMC</div>
             <div className="relative z-10">
-              <div className="flex justify-between items-start mb-16">
+              <div className="flex justify-between items-start mb-16 transition-all duration-700 group-hover:blur-xl group-hover:opacity-20 group-hover:scale-95">
                 <h3 className="text-5xl lg:text-7xl font-black text-black uppercase tracking-tighter leading-[0.85]">
                   NATIONAL<br />
                   UNIVERSITY<br />
@@ -47,25 +47,28 @@ export const Evaluation = ({ onNavigate, onTogglePause, isActive, isExiting, exi
                   <div className="text-xs font-black text-black/60 uppercase tracking-[0.3em] leading-normal">~70 projects<br />per cohort</div>
                 </div>
                 <div className="border-t-[12px] border-black pt-6">
-                  <div className="text-6xl lg:text-7xl font-black text-black tracking-tighter leading-[0.8] mb-2">30<span className="text-accent">+</span></div>
-                  <div className="text-xs font-black text-black/60 uppercase tracking-[0.3em] leading-normal">30+ live service<br />launches</div>
+                  <div className="text-6xl lg:text-7xl font-black text-black tracking-tighter leading-[0.8] mb-2">55<span className="text-accent">+</span></div>
+                  <div className="text-xs font-black text-black/60 uppercase tracking-[0.3em] leading-normal">Active in 55+<br />university clubs</div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-20 bg-accent border-[0.75rem] border-black py-8 px-10 flex items-center justify-between md:col-span-2 group/stat hover:bg-white transition-colors duration-300 relative z-10">
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('trigger-umc'))}
+              className="mt-20 bg-accent border-[0.75rem] border-black py-8 px-10 flex items-center justify-between md:col-span-2 group/stat hover:bg-white transition-colors duration-300 relative z-10 w-full text-left"
+            >
               <span className="text-2xl font-black tracking-[0.3em] uppercase">VIEW ALLIANCE DETAILS</span>
               <ArrowUpRight size={48} className="group-hover/stat:translate-x-4 group-hover/stat:-translate-y-4 transition-transform" />
-            </div>
+            </button>
           </div>
 
           {/* CMC Section - Brutalist Accent Block */}
-          <div className="bg-accent p-12 flex flex-col justify-between border-b-[32px] border-white relative group text-black stagger-item">
-            <div className="absolute top-8 right-8 text-black/10 text-[10rem] font-black leading-none pointer-events-none select-none">CMC</div>
+          <div className="bg-accent p-12 lg:p-16 flex flex-col justify-between relative group text-black stagger-item">
+            <div className="absolute top-8 right-8 text-black/10 text-[10rem] font-black leading-none pointer-events-none select-none transition-all duration-700 group-hover:text-black/60 group-hover:scale-110 group-hover:z-20 group-hover:opacity-100 opacity-100">CMC</div>
             <div className="relative z-10">
-              <div className="flex justify-between items-start mb-16">
+              <div className="flex justify-between items-start mb-16 transition-all duration-700 group-hover:blur-xl group-hover:opacity-20 group-hover:scale-95">
                 <h3 className="text-5xl lg:text-7xl font-black text-black uppercase tracking-tighter leading-[0.85]">
-                  REVENUE FOCUSED<br />PRODUCT STUDIO
+                  PRODUCT BUILDER<br />COLLECTIVE
                 </h3>
                 <div className="px-4 py-2 bg-white text-black text-sm font-black tracking-widest uppercase border-4 border-white">
                   CMC
@@ -92,10 +95,13 @@ export const Evaluation = ({ onNavigate, onTogglePause, isActive, isExiting, exi
               </div>
             </div>
 
-            <div className="mt-20 bg-[#111] border-[0.75rem] border-white/5 py-8 px-10 flex items-center justify-between group/stat hover:bg-white hover:text-black transition-colors duration-300 relative z-10">
-              <span className="text-2xl font-black tracking-[0.3em] uppercase">VIEW STUDIO PORTFOLIO</span>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('trigger-cmc'))}
+              className="mt-20 bg-accent border-[0.75rem] border-black py-8 px-10 flex items-center justify-between group/stat hover:bg-white hover:text-black transition-colors duration-300 relative z-10 w-full text-left"
+            >
+              <span className="text-2xl font-black tracking-[0.3em] uppercase">VIEW COLLECTIVE PORTFOLIO</span>
               <ArrowUpRight size={48} className="group-hover/stat:translate-x-4 group-hover/stat:-translate-y-4 transition-transform" />
-            </div>
+            </button>
           </div>
 
         </div>

@@ -48,14 +48,19 @@ const FooterGlitchChar: React.FC<FooterGlitchCharProps> = ({ char, index, isActi
   );
 };
 
-export const AboutSection: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
+interface AboutSectionProps {
+  containerRef?: React.RefObject<HTMLDivElement>;
+}
+
+export const AboutSection: React.FC<AboutSectionProps> = ({ containerRef }) => {
+  const containerRefInternal = useRef<HTMLDivElement>(null);
   const footerTextRef = useRef<HTMLDivElement>(null);
 
   const isFooterInView = useInView(footerTextRef, { margin: "0px 0px -10% 0px", amount: 0.2 });
 
   const { scrollYProgress } = useScroll({
-    target: containerRef,
+    target: containerRefInternal,
+    container: containerRef,
     offset: ["start end", "end start"]
   });
 
@@ -77,13 +82,13 @@ export const AboutSection: React.FC = () => {
 
   return (
     <section
-      ref={containerRef}
+      ref={containerRefInternal}
       className="relative w-full bg-brand-bg text-brand-red px-4 py-20 md:p-12 lg:p-24 z-20"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 min-h-[50vh]">
 
         <motion.div style={{ y: yLeft }} className="lg:col-span-7">
-          <div className="text-4xl md:text-6xl xl:text-8xl font-display leading-[0.85] tracking-tighter uppercase mb-12 lg:mb-0">
+          <div className="text-2xl md:text-4xl xl:text-6xl font-display leading-[0.7] tracking-tighter uppercase mb-12 lg:mb-0">
             <TextReveal delay={0}>AT NEO-ORDINARY,</TextReveal> <br />
             <TextReveal delay={0.2}>NE(O)RDS DON’T JUST</TextReveal> <br />
             <TextReveal delay={0.4}>USE & FOLLOW AI —</TextReveal> <br />

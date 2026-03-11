@@ -3,10 +3,15 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { InteractiveVideo } from './InteractiveVideo';
 import { TextReveal } from './TextReveal';
 
-export const TeamIntroSection: React.FC = () => {
-    const containerRef = useRef<HTMLDivElement>(null);
+interface TeamIntroSectionProps {
+    containerRef?: React.RefObject<HTMLDivElement>;
+}
+
+export const TeamIntroSection: React.FC<TeamIntroSectionProps> = ({ containerRef }) => {
+    const containerRefInternal = useRef<HTMLDivElement>(null);
     const { scrollYProgress } = useScroll({
-        target: containerRef,
+        target: containerRefInternal,
+        container: containerRef,
         offset: ["start end", "end start"]
     });
 
@@ -18,10 +23,10 @@ export const TeamIntroSection: React.FC = () => {
     const yVideoFrame = useTransform(scrollYProgress, [0, 1], [50, -50]);
 
     return (
-        <section ref={containerRef} className="relative w-full bg-brand-bg text-brand-red py-24 md:py-48 overflow-hidden z-20">
+        <section ref={containerRefInternal} className="relative w-full bg-brand-bg text-brand-red py-24 md:py-48 overflow-hidden z-20">
             <div className="w-full flex flex-col items-center">
 
-                <div className="flex flex-col items-center justify-center text-[10vw] md:text-[8vw] font-display leading-[0.8] tracking-tighter uppercase text-center mb-16 md:mb-32 relative z-10 text-brand-red mix-blend-normal">
+                <div className="flex flex-col items-center justify-center text-[8vw] md:text-[6vw] font-display leading-[0.65] tracking-tighter uppercase text-center mb-16 md:mb-32 relative z-10 text-brand-red mix-blend-normal">
                     <motion.span style={{ y: y1 }} className="block"><TextReveal delay={0}>NE(O)RDs ARE THE KIND</TextReveal></motion.span>
                     <motion.span style={{ y: y2 }} className="block text-[#FF1F1F]"><TextReveal delay={0.2}>THE UNPOLISHED</TextReveal></motion.span>
                     <motion.span style={{ y: y3 }} className="block"><TextReveal delay={0.4}>THE TRUE</TextReveal></motion.span>

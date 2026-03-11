@@ -5,9 +5,10 @@ interface DetailViewProps {
   data: SystemLog | null;
   onPause: (e: React.MouseEvent) => void;
   isLocked: boolean;
+  language?: 'en' | 'ko';
 }
 
-const DetailView: React.FC<DetailViewProps> = ({ data, onPause, isLocked }) => {
+const DetailView: React.FC<DetailViewProps> = ({ data, onPause, isLocked, language = 'ko' }) => {
   // Don't show detail view if no data or if it's a separator
   if (!data || data.type === 'SEPARATOR') return null;
 
@@ -39,14 +40,18 @@ const DetailView: React.FC<DetailViewProps> = ({ data, onPause, isLocked }) => {
         <div className="flex justify-between items-end mb-6 border-b-2 border-[#E60023] pb-4 flex-shrink-0">
             <div>
                 {/* Keywords (kicker) */}
-                <div className="text-xs font-mono text-[#E60023]/60 mb-1 tracking-widest uppercase">{data.keywords}</div>
+                <div className="text-xs font-mono text-[#E60023]/60 mb-1 tracking-widest uppercase">
+                  {language === 'en' ? (data.keywordsEn || data.keywords) : data.keywords}
+                </div>
                 {/* Project Name (Main Title) */}
                 <h2 className="text-4xl font-bold text-[#E60023] tracking-tighter uppercase leading-none break-words max-w-[300px]">
-                  {data.module}
+                  {language === 'en' ? (data.moduleEn || data.module) : data.module}
                 </h2>
             </div>
             <div className="text-right">
-                 <div className="text-3xl font-light text-[#E60023] font-mono">{data.cohort}</div>
+                 <div className="text-3xl font-light text-[#E60023] font-mono">
+                   {language === 'en' ? (data.cohortEn || data.cohort) : data.cohort}
+                 </div>
             </div>
         </div>
 
@@ -57,7 +62,7 @@ const DetailView: React.FC<DetailViewProps> = ({ data, onPause, isLocked }) => {
              <div className="mb-6 flex-shrink-0">
                  <div className="text-[10px] font-bold text-[#E60023]/60 uppercase mb-2 tracking-widest">Service Description</div>
                  <p className="text-lg text-[#E60023] leading-snug font-sans font-medium border-l-4 border-[#E60023] pl-4 py-2">
-                    {data.message}
+                    {language === 'en' ? (data.messageEn || data.message) : data.message}
                  </p>
                  <div className="mt-2 text-xs text-[#E60023]/60 font-mono">
                     T: {data.timestamp} | ID: {data.id}

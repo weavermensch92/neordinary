@@ -61,7 +61,11 @@ const SERVICES_DATA: ServiceItem[] = [
   }
 ];
 
-export const ServicesSection: React.FC = () => {
+interface ServicesSectionProps {
+  containerRef?: React.RefObject<HTMLDivElement>;
+}
+
+export const ServicesSection: React.FC<ServicesSectionProps> = ({ containerRef }) => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [cursorSide, setCursorSide] = useState<'left' | 'right'>('right');
@@ -171,7 +175,7 @@ export const ServicesSection: React.FC = () => {
 
         {/* Header */}
         <div className="w-full max-w-[96%] mx-auto px-4 mb-20 md:mb-32">
-          <div className="text-[10vw] md:text-[6vw] font-display leading-[0.85] tracking-tighter uppercase text-brand-red">
+          <div className="text-[6vw] md:text-[4vw] font-display leading-[0.7] tracking-tighter uppercase text-brand-red">
             <span className="block"><TextReveal delay={0}>HOW NE(O)RDs</TextReveal></span>
             <div className="flex flex-wrap items-baseline gap-4 md:gap-8">
               <span className="block text-brand-red"><TextReveal delay={0.2}>DIVE DEEP</TextReveal></span>
@@ -227,13 +231,13 @@ export const ServicesSection: React.FC = () => {
                 key={`${service.id}-${idx}`}
                 className="w-[90vw] md:w-[80vw] shrink-0 mr-[5vw]"
               >
-                <div className="grid grid-cols-1 md:grid-cols-10 gap-12 md:gap-4 w-full">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 w-full">
                   {/* Left Col: Title & List */}
                   <div className="md:col-span-5 flex flex-col justify-between h-full">
                     <div>
                       <div className="mb-6 md:mb-10">
-                        <h3 className="text-5xl md:text-7xl lg:text-8xl font-display leading-[0.85] tracking-tighter uppercase text-brand-red">
-                          <span className="block opacity-50 text-2xl md:text-3xl mb-2 font-sans font-medium tracking-normal">({service.id})</span>
+                        <h3 className="text-[6vw] md:text-[4vw] font-display leading-[0.65] tracking-tighter uppercase text-brand-red">
+                          <span className="block opacity-50 text-lg md:text-xl mb-2 font-sans font-medium tracking-normal">({service.id})</span>
                           <span className="block"><TextReveal delay={0}>{service.title}</TextReveal></span>
                           <span className="block text-brand-red"><TextReveal delay={0.2}>{service.subTitle}</TextReveal></span>
                         </h3>
@@ -253,8 +257,8 @@ export const ServicesSection: React.FC = () => {
                   </div>
 
                   {/* Right Col: Description */}
-                  <div className="md:col-span-5 flex flex-col justify-start md:pt-24">
-                    <div className="font-sans text-lg md:text-xl lg:text-2xl leading-tight space-y-6 md:space-y-8 font-light uppercase">
+                  <div className="md:col-span-12 lg:col-span-7 flex flex-col justify-start md:pt-12 pr-4 md:pr-12">
+                    <div className="font-sans text-xs md:text-sm leading-relaxed space-y-6 md:space-y-8 font-medium uppercase tracking-wider">
                       {service.description.map((desc, i) => (
                         <p key={i}>
                           <TextReveal delay={0.4} glitchDelay={0.4 + (i * 0.2)} speed="fast" mode="word">{desc}</TextReveal>

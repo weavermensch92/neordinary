@@ -117,7 +117,7 @@ export const UMCOsContentWrapper: React.FC<UMCOsContentWrapperProps> = ({ onClos
     const hasCalledClose = useRef(false);
 
     // UMC OS Logic States
-    const { genData, connectionStatus } = useUMCData();
+    const { genData, connectionStatus, language, setLanguage } = useUMCData();
     const [camera, setCamera] = useState({ x: 0, y: 181 });
     const [zoom, setZoom] = useState(0.52);
     const [isDragging, setIsDragging] = useState(false);
@@ -194,7 +194,14 @@ export const UMCOsContentWrapper: React.FC<UMCOsContentWrapperProps> = ({ onClos
                     isSkeleton: items[0]?.isSkeleton
                 });
             }
-            genLabels.push({ text: `${gen.toUpperCase()}TH`, subText: "GENERATION", x: config.labelX, y: config.labelY, width: config.width, height: config.height });
+            genLabels.push({ 
+                text: language === 'en' ? `${gen.toUpperCase()}TH` : `${gen.replace('gen', '')}기`, 
+                subText: language === 'en' ? "GENERATION" : "기수 데이터", 
+                x: config.labelX, 
+                y: config.labelY, 
+                width: config.width, 
+                height: config.height 
+            });
         };
 
         ['gen5', 'gen6', 'gen7', 'gen8'].forEach(gen => processGen(gen, (layoutConfig as any)[gen]));
@@ -277,13 +284,31 @@ export const UMCOsContentWrapper: React.FC<UMCOsContentWrapperProps> = ({ onClos
                     )}
 
                     {loadingComplete && (
-                        <div
-                            className="w-full h-full relative"
+                        <div className="w-full h-full relative"
                             onMouseDown={handleMouseDown}
                             onMouseMove={handleMouseMove}
                             onMouseUp={handleMouseUp}
                             onMouseLeave={handleMouseUp}
                         >
+                            {/* Language Toggle switch at Top-Left */}
+                            <div className="absolute top-6 left-12 z-50 pointer-events-auto">
+                                <div 
+                                    onClick={() => setLanguage(prev => prev === 'en' ? 'ko' : 'en')}
+                                    className={`
+                                        cursor-pointer w-10 h-5 rounded-full border border-[#E60023] p-[2px] 
+                                        flex items-center transition-all duration-300 shadow-sm
+                                        ${language === 'en' ? 'bg-[#E60023]' : 'bg-white'}
+                                    `}
+                                >
+                                    <div className={`
+                                        w-3.5 h-3.5 rounded-full transition-all duration-300 shadow-sm
+                                        ${language === 'en' ? 'bg-white translate-x-[20px]' : 'bg-[#E60023] translate-x-0'}
+                                    `} />
+                                </div>
+                                <div className="text-[9px] font-mono font-bold text-[#E60023] mt-1 text-center">
+                                    {language === 'en' ? 'EN' : 'KO'}
+                                </div>
+                            </div>
                             <GridBackground offsetX={camera.x} offsetY={camera.y} />
 
                             <div
@@ -304,7 +329,7 @@ export const UMCOsContentWrapper: React.FC<UMCOsContentWrapperProps> = ({ onClos
                                             onToggle={() => setExpandedNodeId(node.id)}
                                         >
                                             {node.items.length > 0 ? (
-                                                <NotionCardComponent item={node.items[0]} isGrid={false} loadImage={true} />
+                                                <NotionCardComponent item={node.items[0]} isGrid={false} loadImage={true} language={language} />
                                             ) : (
                                                 <div className="p-4 text-xs font-mono opacity-20">NO_DATA</div>
                                             )}
@@ -319,20 +344,21 @@ export const UMCOsContentWrapper: React.FC<UMCOsContentWrapperProps> = ({ onClos
                                     onClose={() => setExpandedNodeId(null)}
                                     onSelectCard={(idx) => setSelectedCardIndex(idx)}
                                     selectedIndex={selectedCardIndex}
+                                    language={language}
                                 />
                             )}
 
                             {selectedCardIndex !== null && activeNode && activeNode.items[selectedCardIndex] && (
                                 <GalleryView
                                     nodeId="gallery"
-                                    title={activeNode.items[selectedCardIndex].name}
+                                    title={language === 'en' ? (activeNode.items[selectedCardIndex].nameEn || activeNode.items[selectedCardIndex].name) : activeNode.items[selectedCardIndex].name}
                                     code={activeNode.items[selectedCardIndex].code}
                                     onClose={() => setSelectedCardIndex(null)}
                                 >
                                     <div className="w-full h-full flex flex-col bg-zinc-50 relative">
                                         <div className="flex-1 p-8 md:p-12 overflow-y-auto custom-scrollbar relative z-10">
                                             <h1 className="text-4xl md:text-5xl font-black text-zinc-900 tracking-tighter uppercase mb-2">
-                                                {activeNode.items[selectedCardIndex].name}
+                                                {language === 'en' ? (activeNode.items[selectedCardIndex].nameEn || activeNode.items[selectedCardIndex].name) : activeNode.items[selectedCardIndex].name}
                                             </h1>
 
                                             {activeNode.items[selectedCardIndex].figmaUrl && (

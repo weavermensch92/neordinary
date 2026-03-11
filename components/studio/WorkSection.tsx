@@ -381,7 +381,15 @@ const GalleryItem: React.FC<GalleryItemProps> = ({ url, imgIndex, totalCount, po
         >
             <motion.div
                 layoutId={`gallery-${url}`}
-                transition={{ layout: { type: "spring", stiffness: 100, damping: 20 } }}
+                initial={{ opacity: 0, x: 50, y: 50, scale: 0.9 }}
+                animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+                exit={{ opacity: 0, x: -50, y: -50, scale: 0.9 }}
+                transition={{ 
+                    layout: { type: "spring", stiffness: 100, damping: 20 },
+                    opacity: { duration: 0.6 },
+                    x: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+                    y: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
+                }}
                 style={{
                     width: '100%',
                     height: '100%',
@@ -418,6 +426,7 @@ const GalleryView: React.FC<GalleryViewProps> = ({ project, onBack }) => {
     const [isApiLoading, setIsApiLoading] = useState(true);
     const [mainStack, setMainStack] = useState<string[]>([]);
     const [galleryQueue, setGalleryQueue] = useState<string[]>([]);
+    const [originalList, setOriginalList] = useState<string[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
     const [modalIndex, setModalIndex] = useState(0);
 
@@ -442,6 +451,7 @@ const GalleryView: React.FC<GalleryViewProps> = ({ project, onBack }) => {
                 setMainStack([firstImg]);
                 setGalleryQueue(rest);
                 queueRef.current = rest;
+                setOriginalList(data.length > 0 ? data : [project.imageUrl]);
                 setIsApiLoading(false);
             }
         });
@@ -501,17 +511,18 @@ const GalleryView: React.FC<GalleryViewProps> = ({ project, onBack }) => {
     };
 
     const allImages = [...mainStack, ...galleryQueue];
+    const displayList = originalList.length > 0 ? originalList : allImages;
 
     const handleNextModal = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (allImages.length === 0) return;
-        setModalIndex((prev) => (prev + 1) % allImages.length);
+        if (displayList.length === 0) return;
+        setModalIndex((prev) => (prev + 1) % displayList.length);
     };
 
     const handlePrevModal = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (allImages.length === 0) return;
-        setModalIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+        if (displayList.length === 0) return;
+        setModalIndex((prev) => (prev - 1 + displayList.length) % displayList.length);
     };
 
     const containerVariants = {
@@ -538,9 +549,9 @@ const GalleryView: React.FC<GalleryViewProps> = ({ project, onBack }) => {
                 <div
                     className="w-full aspect-[3/4] bg-brand-bg relative shadow-[-20px_0_40px_rgba(0,0,0,0.3)] cursor-pointer group rounded-sm"
                     onClick={() => {
-                        if (allImages.length > 0) {
+                        if (displayList.length > 0) {
                             const currentUrl = mainStack[mainStack.length - 1];
-                            const idx = allImages.indexOf(currentUrl);
+                            const idx = displayList.indexOf(currentUrl);
                             setModalIndex(idx !== -1 ? idx : 0);
                             setModalOpen(true);
                         }
@@ -569,7 +580,7 @@ const GalleryView: React.FC<GalleryViewProps> = ({ project, onBack }) => {
 
                     {/* Main Cover Label */}
                     <div className="absolute top-4 left-4 bg-brand-bg/80 text-brand-red text-[0.75rem] font-bold uppercase tracking-widest px-3 py-1.5 rounded backdrop-blur-md pointer-events-none z-40 border border-brand-red/20 shadow-xl">
-                        {allImages.indexOf(mainStack[mainStack.length - 1]) + 1} / {allImages.length}
+                        {displayList.indexOf(mainStack[mainStack.length - 1]) + 1} / {displayList.length}
                     </div>
 
                     <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none z-30">
@@ -628,12 +639,12 @@ const GalleryView: React.FC<GalleryViewProps> = ({ project, onBack }) => {
                         <div className="relative w-full h-full pointer-events-auto z-10" style={{ transformStyle: "preserve-3d" }}>
                             <AnimatePresence mode="popLayout">
                                 {galleryQueue.slice(0, VISIBLE_COUNT).map((url, i) => {
-                                    const imgIndex = allImages.indexOf(url);
+                                    const imgIndex = displayList.indexOf(url);
                                     return <GalleryItem
                                         key={url}
                                         url={url}
                                         imgIndex={imgIndex === -1 ? i + 1 : imgIndex + 1}
-                                        totalCount={allImages.length}
+                                        totalCount={displayList.length}
                                         pos={positions[i]}
                                         onClick={handleThumbnailClick}
                                     />
@@ -647,7 +658,7 @@ const GalleryView: React.FC<GalleryViewProps> = ({ project, onBack }) => {
             {/* Media Modal */}
             {createPortal(
                 <AnimatePresence>
-                    {modalOpen && allImages.length > 0 && allImages[modalIndex] && (
+                    {modalOpen && displayList.length > 0 && displayList[modalIndex] && (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -686,14 +697,14 @@ const GalleryView: React.FC<GalleryViewProps> = ({ project, onBack }) => {
                                 className="w-full max-w-6xl aspect-[16/9] md:aspect-auto md:h-[80vh] relative flex items-center justify-center rounded-sm overflow-hidden"
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                {allImages[modalIndex].toLowerCase().endsWith('.mp4') || allImages[modalIndex].toLowerCase().endsWith('.mov') ? (
-                                    <video src={getSafeUrl(allImages[modalIndex])} controls autoPlay playsInline className="max-w-full max-h-full object-contain shadow-2xl" poster={getThumbnailUrl(allImages[modalIndex])} />
+                                {displayList[modalIndex].toLowerCase().endsWith('.mp4') || displayList[modalIndex].toLowerCase().endsWith('.mov') ? (
+                                    <video src={getSafeUrl(displayList[modalIndex])} controls autoPlay playsInline className="max-w-full max-h-full object-contain shadow-2xl" poster={getThumbnailUrl(displayList[modalIndex])} />
                                 ) : (
-                                    <img src={getSafeUrl(allImages[modalIndex])} alt={`Gallery detail ${modalIndex}`} className="max-w-full max-h-full object-contain shadow-2xl" />
+                                    <img src={getSafeUrl(displayList[modalIndex])} alt={`Gallery detail ${modalIndex}`} className="max-w-full max-h-full object-contain shadow-2xl" />
                                 )}
 
                                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-brand-red/50 text-sm font-mono tracking-widest bg-brand-bg/50 px-4 py-1 rounded backdrop-blur-md">
-                                    {modalIndex + 1} / {allImages.length}
+                                    {modalIndex + 1} / {displayList.length}
                                 </div>
                             </motion.div>
                         </motion.div>
@@ -708,8 +719,12 @@ const GalleryView: React.FC<GalleryViewProps> = ({ project, onBack }) => {
 
 // --- Main Section Component ---
 
-export const WorkSection: React.FC = () => {
-    const containerRef = useRef<HTMLDivElement>(null);
+interface WorkSectionProps {
+    containerRef?: React.RefObject<HTMLDivElement>;
+}
+
+export const WorkSection: React.FC<WorkSectionProps> = ({ containerRef }) => {
+    const containerRefInternal = useRef<HTMLDivElement>(null);
     const [hoveredId, setHoveredId] = useState<string | null>(null);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
@@ -718,7 +733,8 @@ export const WorkSection: React.FC = () => {
     const globalMouse = { x: globalMouseX, y: globalMouseY };
 
     const { scrollYProgress } = useScroll({
-        target: containerRef,
+        target: containerRefInternal,
+        container: containerRef,
         offset: ["start end", "end start"]
     });
 
@@ -768,7 +784,7 @@ export const WorkSection: React.FC = () => {
     return (
         <section
             id="work"
-            ref={containerRef}
+            ref={containerRefInternal}
             onMouseMove={handleSectionMouseMove}
             className="relative w-full bg-brand-bg text-brand-red py-24 md:py-40 min-h-screen overflow-hidden"
         >
@@ -779,10 +795,10 @@ export const WorkSection: React.FC = () => {
             Remains VISIBLE even when switching to gallery 
         */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-24 md:mb-40">
-                    <div className="text-[10vw] md:text-[8vw] font-display leading-[0.8] tracking-tighter uppercase text-brand-red mix-blend-difference z-40">
+                    <div className="text-[6vw] md:text-[4vw] font-display leading-[0.6] tracking-tighter uppercase text-brand-red mix-blend-difference z-40">
                         <span className="block"><TextReveal delay={0}>HACKATHON,</TextReveal></span>
                         <span className="block"><TextReveal delay={0.2}>DEMODAY</TextReveal></span>
-                        <span className="block"><TextReveal delay={0.4}>AND FESTIVAL</TextReveal> <sup className="text-[4vw] align-top opacity-60">(5)</sup></span>
+                        <span className="block"><TextReveal delay={0.4}>AND FESTIVAL</TextReveal> <sup className="text-[2vw] align-top opacity-60">(5)</sup></span>
                     </div>
                 </div>
 

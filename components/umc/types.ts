@@ -23,7 +23,9 @@ export enum PanelState {
 export interface ProcessedItem {
   id: string;
   name: string;        // Actual Project Name
+  nameEn?: string;
   description: string; // Project Description (Property fallback)
+  descriptionEn?: string;
   genId: string;       // UMC_5th_gen_{{TeamID}}
   code: string;
   imageUrl: string | null;

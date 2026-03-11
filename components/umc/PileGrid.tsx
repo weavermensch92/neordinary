@@ -16,9 +16,10 @@ interface PileGridProps {
   onClose: () => void;
   onSelectCard: (index: number) => void;
   selectedIndex: number | null;
+  language?: 'en' | 'ko';
 }
 
-const PileGrid: React.FC<PileGridProps> = ({ node, onClose, onSelectCard, selectedIndex }) => {
+const PileGrid: React.FC<PileGridProps> = ({ node, onClose, onSelectCard, selectedIndex, language = 'ko' }) => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -99,13 +100,13 @@ const PileGrid: React.FC<PileGridProps> = ({ node, onClose, onSelectCard, select
                   <div className="absolute -inset-2 border-2 border-dashed border-red-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
 
                   <WindowPanel
-                    title={item.name}
+                    title={language === 'en' ? (item.nameEn || item.name) : item.name}
                     code={item.code}
                     variant={node.variant}
                     isTop={true}
                     className="w-full h-full shadow-md group-hover:shadow-xl transition-shadow group-hover:-translate-y-1"
                   >
-                    <NotionCardComponent item={item} isGrid={true} loadImage={true} />
+                    <NotionCardComponent item={item} isGrid={true} loadImage={true} language={language} />
                   </WindowPanel>
                 </div>
               </div>

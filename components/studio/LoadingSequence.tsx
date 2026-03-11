@@ -14,6 +14,7 @@ import { TextReveal } from './TextReveal';
 
 interface LoadingSequenceProps {
   onComplete: () => void;
+  containerRef: React.RefObject<HTMLDivElement>;
 }
 
 const LINES = [
@@ -26,7 +27,7 @@ const LINES = [
 // Vimeo Video ID from the URL provided (https://vimeo.com/1165128949)
 const VIMEO_ID = "1165128949";
 
-export const LoadingSequence: React.FC<LoadingSequenceProps> = ({ onComplete }) => {
+export const LoadingSequence: React.FC<LoadingSequenceProps> = ({ onComplete, containerRef }) => {
   const [startGlitch, setStartGlitch] = useState(false);
   const [phase, setPhase] = useState<'stacking' | 'uplift' | 'reveal'>('stacking');
 
@@ -175,13 +176,13 @@ export const LoadingSequence: React.FC<LoadingSequenceProps> = ({ onComplete }) 
       */}
       <div className={`relative w-full transition-opacity duration-1000 ${phase === 'reveal' ? 'opacity-100' : 'opacity-0'}`}>
         <div className="w-full pointer-events-none" style={{ height: 'calc(80vh + 43.75vw)' }} />
-        <AboutSection />
-        <BraveSection />
-        <ServicesSection />
-        <WorkSection />
-        <ValuesSection />
-        <TeamIntroSection />
-        <TeamSection />
+        <AboutSection containerRef={containerRef} />
+        <BraveSection containerRef={containerRef} />
+        <ServicesSection containerRef={containerRef} />
+        <WorkSection containerRef={containerRef} />
+        <ValuesSection containerRef={containerRef} />
+        <TeamIntroSection containerRef={containerRef} />
+        <TeamSection containerRef={containerRef} />
         <Footer />
       </div>
     </div>

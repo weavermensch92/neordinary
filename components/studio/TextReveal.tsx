@@ -77,7 +77,7 @@ export const TextReveal: React.FC<TextRevealProps> = ({
           <span
             key={i}
             ref={(el) => { unitRefs.current[i] = el; }}
-            className="inline-block mr-[0.25em] overflow-hidden align-bottom leading-tight"
+            className="inline-block mr-[0.25em] overflow-hidden align-bottom leading-none"
           >
             <GlitchText
               text={unit}

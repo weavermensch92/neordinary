@@ -33,7 +33,11 @@ const MEMBERS = [
     }
 ];
 
-export const TeamSection: React.FC = () => {
+interface TeamSectionProps {
+    containerRef?: React.RefObject<HTMLDivElement>;
+}
+
+export const TeamSection: React.FC<TeamSectionProps> = ({ containerRef }) => {
     const targetRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const [scrollRange, setScrollRange] = useState(0);
@@ -63,6 +67,7 @@ export const TeamSection: React.FC = () => {
 
     const { scrollYProgress } = useScroll({
         target: targetRef,
+        container: containerRef,
         offset: ["start start", "end end"]
     });
 
@@ -74,7 +79,7 @@ export const TeamSection: React.FC = () => {
                 <motion.div ref={scrollRef} style={{ x }} className="flex w-max gap-12 md:gap-24 px-[5vw] items-center h-full">
 
                     <div className="flex-shrink-0 w-[90vw] md:w-[40vw] flex flex-col justify-center h-full">
-                        <h2 className="text-[12vw] md:text-[5vw] font-display leading-[0.9] tracking-tighter uppercase">
+                        <h2 className="text-[8vw] md:text-[2vw] font-display leading-[0.7] tracking-tighter uppercase">
                             <span className="block text-brand-red"><TextReveal delay={0}>NE(O)RDs ARE A</TextReveal></span>
                             <span className="block"><TextReveal delay={0.2}>LIVING NETWORK —</TextReveal></span>
                             <span className="block opacity-40"><TextReveal delay={0.4}>FLEXIBLE,</TextReveal></span>
@@ -96,7 +101,7 @@ export const TeamSection: React.FC = () => {
 
                             <div className="w-full md:w-1/2 flex flex-col justify-end md:justify-center h-auto md:h-full md:max-h-[82.5%] pb-8 md:pb-0">
                                 <div>
-                                    <h3 className="text-4xl md:text-5xl lg:text-6xl font-display uppercase leading-[0.85] tracking-tighter mb-4 text-brand-red">
+                                    <h3 className="text-3xl md:text-4xl lg:text-5xl font-display uppercase leading-[0.7] tracking-tighter mb-4 text-brand-red">
                                         <TextReveal>{member.name}</TextReveal>
                                     </h3>
                                     <div className="w-12 h-1 bg-brand-red mb-6" />

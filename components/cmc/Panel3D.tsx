@@ -12,6 +12,7 @@ interface Panel3DProps {
   opacity: number;
   blur: number;
   isFilteredOut?: boolean; // New prop for filtered state
+  language?: 'en' | 'ko';
 }
 
 const Panel3D: React.FC<Panel3DProps> = ({ 
@@ -24,7 +25,8 @@ const Panel3D: React.FC<Panel3DProps> = ({
   offsetY,
   opacity,
   blur,
-  isFilteredOut = false
+  isFilteredOut = false,
+  language = 'ko'
 }) => {
   // SPECIAL RENDER FOR SEPARATOR (RED FOLDER)
   if (data.type === 'SEPARATOR') {
@@ -64,10 +66,10 @@ const Panel3D: React.FC<Panel3DProps> = ({
            {data.cohort?.replace(/[^0-9]/g, '')}
         </div>
         <div className="text-2xl font-bold tracking-[0.2em] uppercase mt-2 border-t border-white/40 pt-2 font-mono">
-           {data.cohort}
+           {language === 'en' ? (data.cohortEn || data.cohort) : data.cohort}
         </div>
         <div className="text-[10px] font-mono opacity-80 mt-1 tracking-widest">
-           GENERATION START
+           {language === 'en' ? 'GENERATION START' : '기수 시작'}
         </div>
         
         {/* Connector Anchor (Invisible but present for logic consistency) */}
@@ -133,11 +135,11 @@ const Panel3D: React.FC<Panel3DProps> = ({
             <div>
             {/* Label is now Keywords */}
             <div className={`text-[10px] font-mono mb-1 tracking-widest uppercase truncate ${isFilteredOut ? 'text-gray-500' : 'text-[#E60023]/50'}`}>
-                {data.keywords}
+                {language === 'en' ? (data.keywordsEn || data.keywords) : data.keywords}
             </div>
             {/* Main Content is now Project Name */}
             <div className={`text-3xl font-bold leading-none tracking-tight break-words ${isFilteredOut ? 'text-gray-600' : 'text-[#E60023]'}`}>
-                {data.module}
+                {language === 'en' ? (data.moduleEn || data.module) : data.module}
             </div>
             </div>
             
@@ -148,7 +150,7 @@ const Panel3D: React.FC<Panel3DProps> = ({
                 ? (isFilteredOut ? 'border-gray-400 text-gray-500 bg-gray-300' : 'border-[#E60023] text-white bg-[#E60023]') 
                 : (isFilteredOut ? 'border-gray-400 text-gray-500' : 'border-[#E60023] text-[#E60023] bg-[#E60023]/5')
             }`}>
-                {data.cohort}
+                {language === 'en' ? (data.cohortEn || data.cohort) : data.cohort}
             </span>
             </div>
         </div>

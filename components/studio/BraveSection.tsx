@@ -2,11 +2,16 @@ import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { TextReveal } from './TextReveal';
 
-export const BraveSection: React.FC = () => {
-    const containerRef = useRef<HTMLDivElement>(null);
+interface BraveSectionProps {
+    containerRef?: React.RefObject<HTMLDivElement>;
+}
+
+export const BraveSection: React.FC<BraveSectionProps> = ({ containerRef }) => {
+    const containerRefInternal = useRef<HTMLDivElement>(null);
 
     const { scrollYProgress } = useScroll({
-        target: containerRef,
+        target: containerRefInternal,
+        container: containerRef,
         offset: ["start end", "end start"]
     });
 
@@ -15,7 +20,7 @@ export const BraveSection: React.FC = () => {
 
     return (
         <section
-            ref={containerRef}
+            ref={containerRefInternal}
             className="relative w-full bg-brand-bg flex flex-col justify-center py-12 md:py-32 overflow-hidden z-20"
         >
             <div className="w-full max-w-[96%] mx-auto relative min-h-[60vh] flex flex-col md:block">

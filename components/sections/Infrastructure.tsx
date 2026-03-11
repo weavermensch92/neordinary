@@ -209,20 +209,25 @@ export const Infrastructure = ({
 
     const currentLayoutState = isExiting ? (exitDirection === 'left' ? 'exitLeft' : 'exitRight') : (animPhase >= 1 ? 'visible' : 'hidden');
 
-    // Custom Event Listener for Studio Trigger from App.tsx
+    // Custom Event Listener for Studio Trigger from App.tsx or Evaluation.tsx
     useEffect(() => {
-        const handleTrigger = () => {
-            if (!hasVisitedStudio) {
-                setManualOpen(true);
-            }
+        const handleStudioTrigger = () => {
+            if (!hasVisitedStudio) setManualOpen(true);
         };
+        const handleUmcTrigger = () => setIsUmcOsOpen(true);
+        const handleCmcTrigger = () => setIsCmcOsOpen(true);
 
         const section = sectionRef.current;
         if (section) {
-            section.addEventListener('trigger-studio', handleTrigger);
+            section.addEventListener('trigger-studio', handleStudioTrigger);
         }
+        window.addEventListener('trigger-umc', handleUmcTrigger);
+        window.addEventListener('trigger-cmc', handleCmcTrigger);
+
         return () => {
-            if (section) section.removeEventListener('trigger-studio', handleTrigger);
+            if (section) section.removeEventListener('trigger-studio', handleStudioTrigger);
+            window.removeEventListener('trigger-umc', handleUmcTrigger);
+            window.removeEventListener('trigger-cmc', handleCmcTrigger);
         };
     }, [hasVisitedStudio]);
 

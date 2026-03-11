@@ -4,7 +4,12 @@ import { ProcessedItem } from './types';
 import { getOptimizedImageUrl } from './lib/notionUtils';
 
 // Reusable Card Component
-export const NotionCardComponent: React.FC<{ item: ProcessedItem, isGrid?: boolean, loadImage?: boolean }> = ({ item, isGrid, loadImage = true }) => {
+export const NotionCardComponent: React.FC<{ 
+    item: ProcessedItem, 
+    isGrid?: boolean, 
+    loadImage?: boolean,
+    language?: 'en' | 'ko'
+}> = ({ item, isGrid, loadImage = true, language = 'ko' }) => {
     const [displaySrc, setDisplaySrc] = useState<string | null>(null);
     const [scannedImageUrl, setScannedImageUrl] = useState<string | null>(null);
     const [status, setStatus] = useState<'INIT' | 'LOADING_IMAGE' | 'SCANNING_BLOCKS' | 'PERMANENT_SCAN' | 'LOADED' | 'ERROR' | 'IDLE'>('IDLE');
@@ -160,7 +165,7 @@ export const NotionCardComponent: React.FC<{ item: ProcessedItem, isGrid?: boole
                         )}
                         <img
                             src={displaySrc || undefined}
-                            alt={item.name}
+                            alt={language === 'en' ? (item.nameEn || item.name) : item.name}
                             // @ts-ignore - fetchPriority is standard now but not in all TS types
                             fetchPriority="high"
                             loading="eager"
@@ -198,7 +203,7 @@ export const NotionCardComponent: React.FC<{ item: ProcessedItem, isGrid?: boole
             </div>
             <div className="h-auto min-h-[30%] p-3 bg-white flex flex-col justify-start relative">
                 <div className="text-[12px] font-bold text-zinc-900 leading-tight uppercase tracking-tight line-clamp-2">
-                    {item.name}
+                    {language === 'en' ? (item.nameEn || item.name) : item.name}
                 </div>
                 <div className="w-full flex items-center gap-1 mt-2 opacity-40">
                     <div className="w-1 h-1 bg-red-600 rounded-full"></div>
