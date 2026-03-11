@@ -173,16 +173,23 @@ export const Deployment = ({ onNavigate, onTogglePause, isActive, isExiting, exi
 
           <div className="flex flex-col xl:flex-row gap-16 items-stretch relative z-10">
             {/* Uncle Sam Poster Box */}
-            <div className="bg-white p-6 flex items-center gap-6 w-full xl:w-fit xl:min-w-[380px] border-b-8 border-r-8 border-white/20">
-              <div className="w-48 h-48 lg:w-56 lg:h-56 shrink-0 bg-[#f30]/5 p-2">
-                <img src="/unclesam.svg" alt="Uncle Sam" className="w-full h-full object-contain" />
-              </div>
-              <div className="flex flex-col justify-center items-center flex-1">
-                <h4 className="text-4xl lg:text-5xl font-black text-black leading-none text-center tracking-tighter uppercase whitespace-nowrap">
+            <div className="bg-white relative w-full xl:w-[400px] aspect-square overflow-hidden flex flex-col stagger-item border-r-[12px] border-b-[12px] border-white/10">
+              {/* Text Area - Top Right */}
+              <div className="absolute top-8 right-8 z-20">
+                <h4 className="text-4xl lg:text-5xl font-black text-black leading-[0.8] text-right tracking-tighter uppercase italic">
                   I WANT<br />
-                  <span className="text-5xl lg:text-7xl block my-1">CLAUDE</span>
+                  <span className="text-6xl lg:text-8xl block mt-2 mb-1">CLAUDE</span>
                   YOU!
                 </h4>
+              </div>
+
+              {/* Image Area - Bottom-aligned without padding */}
+              <div className="absolute bottom-0 left-0 w-full h-full z-10 flex items-end">
+                <img 
+                  src="/unclesam.svg" 
+                  alt="Uncle Sam" 
+                  className="w-[110%] h-auto object-contain object-bottom -ml-[5%] -mb-2" 
+                />
               </div>
             </div>
 
