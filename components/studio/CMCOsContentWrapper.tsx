@@ -282,7 +282,7 @@ export const CMCOsContentWrapper: React.FC<CMCOsContentWrapperProps> = ({ onClos
                                         >
                                             <div className={`
                                                 w-3.5 h-3.5 rounded-full transition-all duration-500 shadow-md
-                                                ${language === 'en' ? 'bg-white translate-x-[22px]' : 'bg-[#E60023] translate-x-0'}
+                                                ${language === 'en' ? 'bg-white translate-x-[24px]' : 'bg-[#E60023] translate-x-0'}
                                             `} />
                                         </div>
                                         <div className="text-[10px] font-mono font-bold text-[#E60023] opacity-60">

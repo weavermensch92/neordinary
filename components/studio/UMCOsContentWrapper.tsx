@@ -302,7 +302,7 @@ export const UMCOsContentWrapper: React.FC<UMCOsContentWrapperProps> = ({ onClos
                                 >
                                     <div className={`
                                         w-3.5 h-3.5 rounded-full transition-all duration-300 shadow-sm
-                                        ${language === 'en' ? 'bg-white translate-x-[22px]' : 'bg-[#E60023] translate-x-0'}
+                                        ${language === 'en' ? 'bg-white translate-x-[24px]' : 'bg-[#E60023] translate-x-0'}
                                     `} />
                                 </div>
                                 <div className="text-[9px] font-mono font-bold text-[#E60023] mt-1 text-center">
