@@ -178,13 +178,17 @@ export const Navigation: React.FC<NavigationProps> = ({ show, containerRef, onCl
                   Text Block 
               */}
           <motion.div
-            className="absolute bottom-full mb-10 flex flex-col items-center origin-bottom left-1/2"
+            className="absolute bottom-full mb-10 flex flex-col items-center origin-bottom left-1/2 cursor-pointer group/text"
             style={{ x: "-50%" }}
             variants={textVariants}
+            onClick={(e) => {
+              e.preventDefault();
+              onMinimize?.();
+            }}
           >
             <div className="-rotate-90 flex flex-col items-center gap-0">
-              <span className="block text-sm md:text-base font-bold uppercase leading-[0.85] text-[#FF1F1F] whitespace-nowrap tracking-wider">BACK TO</span>
-              <span className="block text-sm md:text-base font-bold uppercase leading-[0.85] text-[#FF1F1F] whitespace-nowrap tracking-wider">NAVIGATOR</span>
+              <span className="block text-sm md:text-base font-bold uppercase leading-[0.85] text-[#FF1F1F] group-hover/text:text-brand-dark transition-colors duration-300 whitespace-nowrap tracking-wider">BACK TO</span>
+              <span className="block text-sm md:text-base font-bold uppercase leading-[0.85] text-[#FF1F1F] group-hover/text:text-brand-dark transition-colors duration-300 whitespace-nowrap tracking-wider">NAVIGATOR</span>
             </div>
           </motion.div>
 

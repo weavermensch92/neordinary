@@ -24,6 +24,7 @@ const App: React.FC = () => {
   const [transitionTargetIndex, setTransitionTargetIndex] = useState(0);
   const [exitDirection, setExitDirection] = useState<'left' | 'right'>('left');
   const [isExiting, setIsExiting] = useState(false);
+  const [isGlobalUIHidden, setIsGlobalUIHidden] = useState(false);
 
   const sections = [
     { id: 'hero', component: Hero, title: 'NEO ORDINARY' },
@@ -293,9 +294,11 @@ const App: React.FC = () => {
         </div>
 
         {/* Fixed UI Overlay */}
-        <div className="absolute inset-0 z-50 pointer-events-none">
-          <Overlay onNavigate={handleNavClick} activeSectionIndex={activeSectionIndex} />
-        </div>
+        {!isGlobalUIHidden && (
+          <div className="absolute inset-0 z-50 pointer-events-none">
+            <Overlay onNavigate={handleNavClick} activeSectionIndex={activeSectionIndex} />
+          </div>
+        )}
 
         {/* WebM Video Transition UI */}
         <VideoTransition
@@ -320,6 +323,7 @@ const App: React.FC = () => {
                 <Section
                   onNavigate={handleNavClick}
                   onTogglePause={setIsExperiencePaused}
+                  onToggleGlobalUI={setIsGlobalUIHidden}
                   isActive={activeSectionIndex === index}
                   isExiting={activeSectionIndex === index && isExiting}
                   exitDirection={exitDirection}

@@ -5,8 +5,9 @@ import { ArrowUpRight } from 'lucide-react';
 export const Evaluation = ({ onNavigate, onTogglePause, isActive, isExiting, exitDirection }: { onNavigate?: (index: number) => void, onTogglePause?: (paused: boolean) => void, isActive?: boolean, isExiting?: boolean, exitDirection?: 'left' | 'right' }) => {
   return (
     <SectionLayout
-      title="A STRUCTURED DEVELOPER INFRASTRUCTURE"
-      subtitle="Organized. Cohort-Based. Execution-Oriented."
+      id="evaluation-section"
+      title="TECHNICAL EVALUATION"
+      subtitle="Precision Auditing & Model Performance Verification"
       index="02"
       isActive={isActive}
       isExiting={isExiting}

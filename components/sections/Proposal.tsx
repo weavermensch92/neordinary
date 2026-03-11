@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SectionLayout } from './SectionLayout';
 import { Calendar, Download, Mail, MessageSquare } from 'lucide-react';
+import { MeetingModal } from './MeetingModal';
+import { exportToPDF } from '../utils/PDFExporter';
 
 export const Proposal = ({ onNavigate, onTogglePause, isActive, isExiting, exitDirection }: { onNavigate?: (index: number) => void, onTogglePause?: (paused: boolean) => void, isActive?: boolean, isExiting?: boolean, exitDirection?: 'left' | 'right' }) => {
+    const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
+
     return (
         <SectionLayout
+            id="proposal-section"
             title="AI API PARTNERSHIP PROPOSAL"
             subtitle="Direct Access to Pre-Trained Developers"
             index="05"
@@ -54,7 +59,10 @@ export const Proposal = ({ onNavigate, onTogglePause, isActive, isExiting, exitD
 
                 {/* Colossal Bottom CTA Buttons */}
                 <div className="flex flex-col xl:flex-row gap-12 items-stretch mt-16">
-                    <button className="group flex flex-col xl:flex-row flex-1 items-start xl:items-center justify-between p-12 lg:p-16 bg-white border-[0.75rem] border-black hover:bg-black hover:border-accent transition-colors duration-500 shadow-[1.25rem_1.25rem_0_0_rgba(255,255,255,0.2)] hover:translate-x-4 hover:-translate-y-4 stagger-item">
+                    <button
+                        onClick={() => setIsMeetingModalOpen(true)}
+                        className="group flex flex-col xl:flex-row flex-1 items-start xl:items-center justify-between p-12 lg:p-16 bg-white border-[0.75rem] border-black hover:bg-black hover:border-accent transition-colors duration-500 shadow-[1.25rem_1.25rem_0_0_rgba(255,255,255,0.2)] hover:translate-x-4 hover:-translate-y-4 stagger-item"
+                    >
                         <div className="flex flex-col items-start text-left">
                             <span className="text-black group-hover:text-accent font-black text-6xl lg:text-[6rem] uppercase tracking-tighter leading-[0.85] mb-8">SCHEDULE<br />MEETING</span>
                             <span className="text-base lg:text-lg text-black/60 group-hover:text-white uppercase font-black tracking-[0.4em] bg-black/10 group-hover:bg-white/10 px-6 py-3 border-2 border-transparent group-hover:border-white/30">START STRATEGIC CONV.</span>
@@ -62,10 +70,13 @@ export const Proposal = ({ onNavigate, onTogglePause, isActive, isExiting, exitD
                         <Calendar className="text-black group-hover:text-accent mt-12 xl:mt-0 transition-transform group-hover:rotate-12 group-hover:scale-125" size={140} />
                     </button>
 
-                    <button className="group flex flex-col xl:flex-row flex-1 items-start xl:items-center justify-between p-12 lg:p-16 bg-[#111] border-[0.75rem] border-white hover:bg-white hover:border-black transition-colors duration-500 shadow-[1.25rem_1.25rem_0_0_rgba(168,85,247,1)] hover:translate-x-4 hover:-translate-y-4 stagger-item">
+                    <button
+                        onClick={() => exportToPDF()}
+                        className="group flex flex-col xl:flex-row flex-1 items-start xl:items-center justify-between p-12 lg:p-16 bg-[#111] border-[0.75rem] border-white hover:bg-white hover:border-black transition-colors duration-500 shadow-[1.25rem_1.25rem_0_0_rgba(168,85,247,1)] hover:translate-x-4 hover:-translate-y-4 stagger-item"
+                    >
                         <div className="flex flex-col items-start text-left">
-                            <span className="text-white group-hover:text-black font-black text-6xl lg:text-[6rem] uppercase tracking-tighter leading-[0.85] mb-8">OVERVIEW<br />DECK</span>
-                            <span className="text-base lg:text-lg text-accent group-hover:text-black/60 uppercase font-black tracking-[0.4em] bg-white/10 group-hover:bg-black/10 px-6 py-3 border-2 border-transparent group-hover:border-black/30">DOWNLOAD RESOURCES</span>
+                            <span className="text-white group-hover:text-black font-black text-6xl lg:text-[6rem] uppercase tracking-tighter leading-[0.85] mb-8">DOWNLOAD<br />CATALOG</span>
+                            <span className="text-base lg:text-lg text-accent group-hover:text-black/60 uppercase font-black tracking-[0.4em] bg-white/10 group-hover:bg-black/10 px-6 py-3 border-2 border-transparent group-hover:border-black/30">DOWNLOAD PDF RESOURCES</span>
                         </div>
                         <Download className="text-white group-hover:text-black mt-12 xl:mt-0 transition-transform group-hover:translate-y-8" size={140} />
                     </button>
@@ -83,6 +94,12 @@ export const Proposal = ({ onNavigate, onTogglePause, isActive, isExiting, exitD
                     </div>
                 </div>
             </div>
+
+            {/* Meeting Modal */}
+            <MeetingModal
+                isOpen={isMeetingModalOpen}
+                onClose={() => setIsMeetingModalOpen(false)}
+            />
         </SectionLayout>
     );
 };

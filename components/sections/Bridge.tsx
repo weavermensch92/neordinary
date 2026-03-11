@@ -5,8 +5,9 @@ import { ArrowUpRight, Terminal, Cpu } from 'lucide-react';
 export const Bridge = ({ onNavigate, onTogglePause, isActive, isExiting, exitDirection }: { onNavigate?: (index: number) => void, onTogglePause?: (paused: boolean) => void, isActive?: boolean, isExiting?: boolean, exitDirection?: 'left' | 'right' }) => {
   return (
     <SectionLayout
-      title="THE AI-NATIVE BUILDER NETWORK"
-      subtitle="Participants Who Build the Future With AI at the Core."
+      id="bridge-section"
+      title="AI ADOPTION BRIDGE"
+      subtitle="Connecting Global Models to Institutional Implementation"
       index="04"
       isActive={isActive}
       isExiting={isExiting}

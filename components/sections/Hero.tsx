@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { SectionLayout } from './SectionLayout';
 
 export const Hero = ({ onNavigate, onTogglePause, isActive, isExiting, exitDirection }: {
   onNavigate?: (index: number) => void,
@@ -20,15 +21,19 @@ export const Hero = ({ onNavigate, onTogglePause, isActive, isExiting, exitDirec
         background 3D typography (GRIDGE / NE(O)RDINARY) appears 
         perfectly centered without interference from the sidebar grid.
       */}
-      <motion.div
-        animate={exitAnimation}
-        className="relative z-10 flex flex-col items-center justify-center w-full h-full pointer-events-none"
-      >
-        {/* 
-            The content is primarily the 3D scene in the background.
-            This container ensures any future overlay content is also centered.
-        */}
-      </motion.div>
+      <SectionLayout id="hero-section">
+        <div className="flex flex-col gap-8 md:gap-14 w-full h-full pb-32">
+          <motion.div
+            animate={exitAnimation}
+            className="relative z-10 flex flex-col items-center justify-center w-full h-full pointer-events-none"
+          >
+            {/* 
+                The content is primarily the 3D scene in the background.
+                This container ensures any future overlay content is also centered.
+            */}
+          </motion.div>
+        </div>
+      </SectionLayout>
     </section>
   );
 };

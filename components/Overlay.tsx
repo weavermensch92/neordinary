@@ -80,17 +80,7 @@ export const Overlay: React.FC<OverlayProps> = ({ onNavigate, activeSectionIndex
               )}
             </button>
           ))}
-
-          {/* Action Menu */}
-          <button className="flex items-center justify-center ml-8 w-12 h-12 bg-white text-black hover:bg-black hover:text-white transition-all transform hover:scale-105 active:scale-95">
-            <Menu size={24} />
-          </button>
         </nav>
-
-        {/* Mobile Menu */}
-        <button className="md:hidden text-white p-4">
-          <Menu size={28} />
-        </button>
       </header>
     </div>
   );

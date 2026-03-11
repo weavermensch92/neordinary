@@ -1,0 +1,564 @@
+<head>
+    <style>
+        #info {
+            overflow-y: scroll;
+            visibility: hidden;
+            background: #EFF3F4;
+            position: absolute;
+            top: 0;
+            color: black;
+            text-align: left;
+        }
+
+        #bar {
+            padding: 20px;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            visibility: visible;
+            background: transparent;
+            position: absolute;
+            left: 0;
+            top: 0;
+            text-align: left;
+            box-sizing: border-box;
+            width: max-content;
+            height: 100vh;
+            pointer-events: none;
+            /* 뒷 맵으로 이벤트 패스 */
+            z-index: 10;
+        }
+
+        #bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        #close {
+            visibility: hidden;
+            width: 30px;
+            height: 20px;
+            background: #EFF3F4;
+            position: absolute;
+            top: 0;
+            color: black;
+            text-align: center;
+        }
+
+        .usingFor {
+            margin: 0;
+            display: inline-block;
+            cursor: pointer;
+            font-family: 'Helvetica', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 32px;
+            line-height: 0.9;
+            letter-spacing: -1px;
+            white-space: nowrap;
+            clear: both;
+            float: left;
+            color: black;
+            pointer-events: auto;
+            /* 박스 자체는 클릭 가능 */
+            /* text-transform: lowercase; */
+        }
+
+        .usingFor span {
+            background-color: white;
+            padding: 0px 5px;
+            box-decoration-break: clone;
+            -webkit-box-decoration-break: clone;
+        }
+
+        .switch {
+            visibility: visible;
+            width: 120px;
+            height: 20px;
+            /* background: #232A3D; */
+            border-radius: 100px;
+            position: absolute;
+            top: 20;
+            color: black;
+            text-align: center;
+        }
+
+        .active_switch {
+            background: #227AB5;
+        }
+
+        .inactive_switch {
+            background: rgb(68, 73, 84);
+        }
+
+        .usingFor.inactive_switch {
+            background: transparent;
+            font-weight: normal;
+        }
+
+        .usingFor.active_switch {
+            background: transparent;
+            font-weight: 900;
+        }
+
+        .usingFor.active_switch span {
+            /* 활성화 시 컬러 효과 제거 */
+        }
+
+        body {
+            margin: 0;
+        }
+
+        p {
+            padding: 10px 0px 0px 10px;
+            color: black;
+        }
+
+        h1 {
+            padding: 10px 0px 0px 10px;
+            text-align: center;
+        }
+    </style>
+    <script src="three.js"></script>
+    <script src="three-spritetext.min.js"></script>
+    <!--<script src="//unpkg.com/3d-force-graph"></script>-->
+    <script src="3d-force-graph.js"></script>
+</head>
+
+<body>
+
+    <div id="3d-graph"></div>
+    <div id="info"></div>
+    <div id="bar"></div>
+    <div id="switch_a" class='switch' style="display: none;"></div>
+    <div id="switch_d" class='switch' style="display: none;"></div>
+    <div id="close" style="cursor: pointer">X</div>
+
+    <script>
+        //DATA_URL = 'http://backronym.xyz/data.json';
+        DATA_URL = 'data.json';
+
+        colored_nodes = [];
+
+        //link colors
+        TYPE_A_COLOR = '#555555';
+        TYPE_B_COLOR = 'gold';
+
+        const elem = document.getElementById('3d-graph');
+        let Graph = ForceGraph3D()(elem);
+
+        SUB_GRAPH_SHOWN = false;
+        var visibleType = "a";
+        var counter = 0;
+
+        all_nodes = []
+        all_links = []
+
+        let current_mode = 'root';
+        let active_generation = null;
+        let active_school = null;
+        let clicked_node_id = null;
+
+        function get_node_object(n) {
+            if (current_mode !== 'root') return create_sprite(n);
+            if (n.id === clicked_node_id) return create_sprite(n);
+            return null; // default sphere
+        }
+
+        info_div = document.getElementById("info");
+        bar_div = document.getElementById("bar");
+        close_button = document.getElementById("close");
+
+        function create_button(id, text) {
+            ret_button = document.getElementById(id);
+            ret_button.innerHTML = "<b>" + text + "</b>";
+            ret_button.className = 'switch inactive_switch';
+            return ret_button;
+        }
+
+        button_a = create_button('switch_a', 'Based on');
+        //button_b = create_button('switch_b', 'Using for');
+        //button_c = create_button('switch_c', 'All links');
+        button_d = create_button('switch_d', 'Show/Hide Bar');
+
+        button_a.className = 'switch active_switch';
+
+
+        function in_(a, arr) {
+            for (var i = 0; i < arr.length; i++) {
+                if (arr[i] == a)
+                    return true;
+            }
+            return false;
+        }
+
+        function create_sprite(node) {
+            const obj = new THREE.Mesh(
+                new THREE.SphereGeometry(5),
+                new THREE.MeshBasicMaterial({
+                    depthWrite: false,
+                    transparent: true,
+                    opacity: 0
+                })
+            );
+
+            // add text sprite as child
+            const sprite = new SpriteText(node.label || node.id);
+            sprite.color = node.color;
+            if (in_(node, colored_nodes))
+                sprite.color = 'red';
+            sprite.textHeight = 5;
+
+            // Set opacity based on camera distance and screen center focus
+            obj.onBeforeRender = function (renderer, scene, camera) {
+                // 1. 거리에 따른 기본 opacity (0.5 ~ 1.0)
+                const dist = camera.position.distanceTo(obj.position);
+                const minDist = 150;
+                const maxDist = 1000;
+
+                let distOpacity = 1 - ((dist - minDist) / (maxDist - minDist));
+                distOpacity = Math.max(0.5, Math.min(1, Math.pow(distOpacity, 1.5)));
+
+                // 2. 화면 중앙(포커스) 가중치 계산
+                const vector = obj.position.clone();
+                vector.project(camera); // -1 ~ 1 의 스크린 NDC 좌표로 변환
+
+                // x, y 좌표가 (0,0)에 가까울수록 거리가 0에 가까움. 최대 거리는 루트 2(약 1.414)
+                // z가 1 이상이면 카메라 뒤에 있는 것이므로 무시(0 처리 가깝게)
+                let centerDist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+
+                // 화면 중앙 반경 0.3 안쪽이면 가중치 1.0 (100% 뚜렷)
+                // 중앙에서 멀어질수록 가중치가 0으로 수렴
+                let focusWeight = 0;
+                if (vector.z < 1) {
+                    focusWeight = 1 - Math.min(1, Math.max(0, (centerDist - 0.1) / 0.5));
+                }
+
+                // 거리에 따른 투명도와 중앙 집중도(Focus)를 혼합
+                // 포커스를 받는 노드는 거리가 멀어도 100% 보이게 보정
+                let finalOpacity = Math.max(distOpacity, focusWeight);
+
+                sprite.material.opacity = finalOpacity;
+                sprite.material.transparent = true;
+            };
+
+            obj.add(sprite);
+            return obj;
+        }
+
+
+        function sizing() {
+            INFO_WIDTH = document.body.clientWidth * .33;
+            info_div.style.width = INFO_WIDTH;
+            info_div.style.left = document.body.clientWidth - INFO_WIDTH;
+            info_div.style.height = document.body.clientHeight;
+            //replace with algebra
+            close_button.style.left = document.body.clientWidth - 46;
+            button_d.style.left = (document.body.clientWidth / 2) - 180;
+            button_a.style.left = (document.body.clientWidth / 2) - 58;
+            //button_b.style.left = (document.body.clientWidth / 2) - 100;
+            //button_c.style.left = (document.body.clientWidth / 2) + 63;
+            bar_div.style.height = document.body.clientHeight;
+            // bar_div.style.width = document.body.clientWidth / 5;
+        }
+
+        sizing();
+
+        close_button.onclick = function () {
+            current_pos = Graph.cameraPosition();
+            cur_x = current_pos.x;
+            cur_y = current_pos.y;
+            cur_z = current_pos.z;
+
+
+            Graph.cameraPosition({
+                x: cur_x,
+                y: cur_y,
+                z: cur_z
+            }, {
+                x: 0,
+                y: 0,
+                z: 0
+            });
+            //for all elements sharing the state, hide them
+            info_div.style.visibility = 'hidden';
+            close_button.style.visibility = 'hidden';
+            if (visibleType == 'c') Graph.linkVisibility(true);
+            else {
+                Graph.linkVisibility(function (l) {
+                    if (l.type == visibleType) {
+                        return true;
+                    } else return false;
+                });
+
+                // 카메라 초기 위치로 복귀
+                Graph.cameraPosition(
+                    { x: 0, y: 0, z: 700 },
+                    { x: 0, y: 0, z: 0 },
+                    2000
+                );
+            }
+        }
+
+        button_a.onclick = function () {
+            //Based on button
+            colored_nodes = [];
+            SUB_GRAPH_SHOWN = false;
+            current_mode = 'root';
+            active_generation = null;
+            active_school = null;
+            clicked_node_id = null;
+
+            Graph.d3Force('charge').strength(-30);
+            Graph.d3Force('link').distance(30); // reset distance
+            Graph.nodeThreeObject(get_node_object); // return to basic spheres
+
+            Graph.graphData({
+                'nodes': all_nodes,
+                'links': all_links
+            });
+
+            render_sidebar();
+
+            visibleType = "a";
+            button_a.className = 'switch active_switch';
+
+            Graph.linkVisibility(function (l) {
+                if (l.type == visibleType) return true;
+                return false;
+            });
+            Graph.cameraPosition({ x: 0, y: 0, z: 700 }, { x: 0, y: 0, z: 0 }, 2000);
+        }
+
+        /*button_b.onclick = function () {
+            //Using for button
+            colored_nodes = [];
+            if (SUB_GRAPH_SHOWN) {
+                Graph.graphData({
+                    'nodes': all_nodes,
+                    'links': all_links
+                })
+            }
+            // Graph.nodeThreeObject(create_sprite)
+
+            SUB_GRAPH_SHOWN = false;
+            visibleType = "b";
+            button_b.className = 'switch active_switch';
+            button_a.className = 'switch  inactive_switch';
+            //button_c.className = 'switch  inactive_switch';
+            if (counter == 0) {
+                using_for();
+                counter++;
+            } else {}
+            Graph.linkVisibility(function (l) {
+                if (l.type == visibleType) {
+                    return true;
+                } else return false;
+            });
+        }
+
+        button_c.onclick = function () {
+            //all link button
+            colored_nodes = [];
+            if (SUB_GRAPH_SHOWN) {
+                Graph.graphData({
+                    'nodes': all_nodes,
+                    'links': all_links
+                });
+            }
+
+            // Graph.nodeThreeObject(create_sprite)
+
+            SUB_GRAPH_SHOWN = false;
+            visibleType = "c";
+            button_c.className = 'switch active_switch';
+            button_a.className = 'switch  inactive_switch';
+            button_b.className = 'switch  inactive_switch';
+            // bar_div.style.visibility = 'hidden';
+            Graph.linkVisibility(true);
+        }*/
+
+        button_d.onclick = function () {
+            //show and hide bar button
+            if (all_nodes.length == 0) {
+                all_nodes = Graph.graphData().nodes;
+                all_links = Graph.graphData().links;
+            }
+
+            visib = bar_div.style.visibility;
+            if (visib == 'hidden' || visib == '') {
+                if (counter == 0) {
+                    render_sidebar();
+                    counter++;
+                }
+                bar_div.style.visibility = 'visible';
+                button_d.className = 'switch active_switch';
+
+            } else {
+                if (visib == 'visible') {
+                    button_d.className = 'switch inactive_switch';
+                    bar_div.style.visibility = 'hidden';
+                }
+            }
+        }
+
+        //resizing logic
+        window.onresize = function () {
+            Graph
+                .width(document.body.clientWidth)
+                .height(document.body.clientHeight)
+            sizing();
+        }
+
+        current_active_using_for = null;
+
+        function render_sidebar() {
+            while (bar_div.firstChild) bar_div.removeChild(bar_div.firstChild);
+
+            let gens = [...new Set(all_nodes.filter(n => n.role === 'Generation').map(n => n.generation))];
+            gens.sort();
+
+            gens.forEach(gen => {
+                let count = all_nodes.filter(n => n.generation === gen && (n.role === 'Student' || n.role === 'School')).length;
+                let p = document.createElement('p');
+                p.className = (current_mode === 'generation' && active_generation === gen) ? 'usingFor active_switch' : 'usingFor inactive_switch';
+                p.innerHTML = `<span>${gen} (${count})</span>`;
+                p.onclick = (e) => {
+                    if (current_mode === 'generation' && active_generation === gen) {
+                        button_a.onclick();
+                    } else {
+                        enter_generation_mode(gen);
+                    }
+                };
+                bar_div.appendChild(p);
+
+                if (current_mode === 'generation' && active_generation === gen) {
+                    let schools = [...new Set(all_nodes.filter(n => n.generation === gen && n.role === 'School').map(n => n.school))];
+                    schools.sort();
+
+                    schools.forEach(school => {
+                        let scount = all_nodes.filter(n => n.generation === gen && n.school === school && n.role === 'Student').length;
+                        let sp = document.createElement('p');
+                        sp.className = 'usingFor inactive_switch school_item';
+                        sp.style.marginLeft = '20px';
+                        sp.style.fontSize = '24px';
+                        sp.innerHTML = `<span>ㄴ ${school} (${scount})</span>`;
+                        sp.onclick = (e) => {
+                            if (current_mode === 'school' && active_school === school) {
+                                enter_generation_mode(gen);
+                            } else {
+                                let all_sp = bar_div.getElementsByClassName('school_item');
+                                for (let i = 0; i < all_sp.length; i++) all_sp[i].className = 'usingFor inactive_switch school_item';
+                                e.currentTarget.className = 'usingFor active_switch school_item';
+
+                                enter_school_mode(school, gen);
+                            }
+                        };
+                        bar_div.appendChild(sp);
+                    });
+                }
+            });
+        }
+
+        function enter_generation_mode(gen) {
+            current_mode = 'generation';
+            active_generation = gen;
+
+            let gen_nodes = all_nodes.filter(n => n.generation === gen || n.id === gen);
+            let gen_node_ids = new Set(gen_nodes.map(n => n.id));
+            let gen_links = all_links.filter(l => {
+                let sid = typeof l.source === 'object' ? l.source.id : l.source;
+                let tid = typeof l.target === 'object' ? l.target.id : l.target;
+                return gen_node_ids.has(sid) && gen_node_ids.has(tid);
+            });
+
+            button_a.className = 'switch inactive_switch';
+            SUB_GRAPH_SHOWN = true;
+
+            Graph.d3Force('charge').strength(-100);
+            Graph.d3Force('link').distance(30);
+            Graph.graphData({ nodes: gen_nodes, links: gen_links });
+            Graph.nodeThreeObject(get_node_object);
+            Graph.cameraPosition({ x: 0, y: 0, z: 700 }, { x: 0, y: 0, z: 0 }, 2000);
+            render_sidebar();
+        }
+
+        function enter_school_mode(school, gen) {
+            current_mode = 'school';
+            active_school = school;
+
+            // Filter nodes by school and generation, or the school node itself
+            let school_nodes = all_nodes.filter(n => (n.school === school && n.generation === gen) || n.id === school);
+            let school_node_ids = new Set(school_nodes.map(n => n.id));
+
+            let school_links = all_links.filter(l => {
+                let sid = typeof l.source === 'object' ? l.source.id : l.source;
+                let tid = typeof l.target === 'object' ? l.target.id : l.target;
+                return school_node_ids.has(sid) && school_node_ids.has(tid);
+            });
+
+            Graph.d3Force('charge').strength(-500); // Spread nodes widely so text is readable
+            Graph.d3Force('link').distance(60); // Increase distance to avoid overlap
+            Graph.graphData({ nodes: school_nodes, links: school_links });
+            Graph.nodeThreeObject(get_node_object);
+            Graph.cameraPosition({ x: 0, y: 0, z: 500 }, { x: 0, y: 0, z: 0 }, 2000);
+        }
+
+        const onNodeHoverFunc = node => elem.style.cursor = node ? 'pointer' : null;
+        const onNodeClickFunc = node => {
+            clicked_node_id = node.id;
+            Graph.nodeThreeObject(get_node_object); // update point to text
+
+            // Aim at node from outside it
+            const distance = 150;
+            const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
+            Graph.cameraPosition({
+                x: node.x * distRatio,
+                y: node.y * distRatio,
+                z: node.z * distRatio
+            }, // new position
+                node, // lookAt ({ x, y, z })
+                3000 // ms transition duration
+            );
+
+            info_div.style.visibility = 'hidden';
+            close_button.style.visibility = 'hidden';
+        };
+
+        Graph.d3Force('charge').strength(-30);
+        Graph
+            .cooldownTicks(200)
+            .nodeResolution(1)
+            .linkResolution(1)
+            .nodeLabel(node => node.label || node.id)
+            .nodeAutoColorBy('group')
+            .enableNodeDrag(false)
+            .backgroundColor('black')
+            .linkColor(function (l) {
+                if (l.type == 'a') {
+                    return TYPE_A_COLOR;
+                } else {
+                    return TYPE_B_COLOR;
+                }
+            })
+            /*.linkDirectionalArrowLength(3.5)
+            .linkDirectionalArrowRelPos(.75)*/
+            .linkWidth('1px')
+            .linkOpacity(1)
+            .cameraPosition({
+                z: 700
+            })
+            .linkVisibility(function (l) {
+                if (l.type == visibleType) {
+                    return true;
+                } else return false;
+            })
+            .onNodeClick(onNodeClickFunc)
+            // .nodeThreeObject(create_sprite)
+            ;
+
+        fetch(DATA_URL).then(res => res.json()).then(data => {
+            all_nodes = data.nodes;
+            all_links = data.links;
+            Graph.graphData({ nodes: all_nodes, links: all_links });
+            render_sidebar();
+        });
+
+    </script>
+</body>

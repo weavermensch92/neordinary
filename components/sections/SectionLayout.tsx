@@ -10,6 +10,9 @@ interface SectionLayoutProps {
   isActive?: boolean;
   isExiting?: boolean;
   exitDirection?: 'left' | 'right';
+  isTitleExiting?: boolean;
+  id?: string;
+  hideHeader?: boolean;
 }
 
 export const SectionLayout: React.FC<SectionLayoutProps> = ({
@@ -20,7 +23,10 @@ export const SectionLayout: React.FC<SectionLayoutProps> = ({
   index,
   isActive = false,
   isExiting = false,
-  exitDirection = 'left'
+  exitDirection = 'left',
+  isTitleExiting = false,
+  id,
+  hideHeader = false
 }) => {
   const [phase, setPhase] = useState(0);
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
@@ -113,46 +119,53 @@ export const SectionLayout: React.FC<SectionLayoutProps> = ({
         className={`w-full min-h-[85vh] pt-32 md:pt-48 pb-24 grid grid-cols-1 md:grid-cols-12 gap-12 relative z-10 items-stretch ${isActive && phase === 5 ? 'phase-5-active' : ''}`}
       >
         {/* Left Column: Index & Context */}
-        <div className="md:col-span-3 flex flex-col justify-between pr-8 border-r-[0.75rem] border-white relative">
-          <div>
-            {index && (
-              <div className="flex flex-col mb-12 stagger-item">
-                <span className="text-[12rem] font-black leading-[0.75] text-white tracking-tighter">
-                  {index}
-                </span>
-                <div className="w-1/2 h-4 bg-accent mt-6"></div>
-              </div>
-            )}
+        {!hideHeader && (
+          <motion.div
+            className="md:col-span-3 flex flex-col justify-between pr-8 border-r-[0.75rem] border-white relative"
+            initial="visible"
+            animate={isTitleExiting ? "exitLeft" : "visible"}
+            variants={sectionVariants}
+          >
+            <div>
+              {index && (
+                <div className="flex flex-col mb-12 stagger-item">
+                  <span className="text-[12rem] font-black leading-[0.75] text-white tracking-tighter">
+                    {index}
+                  </span>
+                  <div className="w-1/2 h-4 bg-accent mt-6"></div>
+                </div>
+              )}
 
-            {title && (
-              <div className="text-4xl font-black text-white/20 uppercase tracking-tighter leading-[0.85] mb-8 break-words origin-left md:whitespace-normal z-50 relative min-h-[7.5rem] stagger-item">
-                <span className="text-white">{firstWord}</span><br />{restOfTitle}
-              </div>
-            )}
+              {title && (
+                <div className="text-4xl font-black text-white/20 uppercase tracking-tighter leading-[0.85] mb-8 break-words origin-left md:whitespace-normal z-50 relative min-h-[7.5rem] stagger-item">
+                  <span className="text-white">{firstWord}</span><br />{restOfTitle}
+                </div>
+              )}
 
-            {subtitle && (
-              <div className="border-l-8 border-accent pl-6 py-2 mt-12 bg-white/5 stagger-item">
-                <span className="block text-accent text-3xl font-black tracking-tighter uppercase leading-none">
-                  {subtitle}
-                </span>
-              </div>
-            )}
-          </div>
+              {subtitle && (
+                <div className="border-l-8 border-accent pl-6 py-2 mt-12 bg-white/5 stagger-item">
+                  <span className="block text-accent text-3xl font-black tracking-tighter uppercase leading-none">
+                    {subtitle}
+                  </span>
+                </div>
+              )}
+            </div>
 
-          {/* Bottom Info */}
-          <div className="hidden md:flex flex-col gap-6 mt-20 stagger-item">
-            <div className="w-full h-2 bg-white/20"></div>
-            <div className="flex justify-between items-end">
-              <div className="flex gap-2">
-                <div className="w-8 h-8 bg-white"></div>
-                <div className="w-16 h-8 bg-accent"></div>
-              </div>
-              <div className="text-lg font-black text-white/40 uppercase tracking-[0.2em] text-right">
-                SYS.REF<br /><span className="text-white">D-2026</span>
+            {/* Bottom Info */}
+            <div className="hidden md:flex flex-col gap-6 mt-20 stagger-item">
+              <div className="w-full h-2 bg-white/20"></div>
+              <div className="flex justify-between items-end">
+                <div className="flex gap-2">
+                  <div className="w-8 h-8 bg-white"></div>
+                  <div className="w-16 h-8 bg-accent"></div>
+                </div>
+                <div className="text-lg font-black text-white/40 uppercase tracking-[0.2em] text-right">
+                  SYS.REF<br /><span className="text-white">D-2026</span>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        )}
 
         {/* Main Content Area */}
         <div className={`md:col-span-9 flex flex-col justify-center pl-0 md:pl-8 h-full relative z-10`}>

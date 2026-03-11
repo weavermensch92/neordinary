@@ -137,7 +137,14 @@ const fetchProjectImages = async (projectId: string): Promise<string[]> => {
                     `${GCP_BASE_URL}/ai-hackathon/IMG_1881.JPG`,
                     `${GCP_BASE_URL}/ai-hackathon/IMG_1897.JPG`,
                     `${GCP_BASE_URL}/ai-hackathon/IMG_3204.jpg`,
-                    `${GCP_BASE_URL}/ai-hackathon/IMG_7871.JPG`
+                    `${GCP_BASE_URL}/ai-hackathon/IMG_7871.JPG`,
+                    `${GCP_BASE_URL}/hackathon/0N8A3414.jpg`,
+                    `${GCP_BASE_URL}/hackathon/0N8A3418.jpg`,
+                    `${GCP_BASE_URL}/hackathon/0N8A3445.jpg`,
+                    `${GCP_BASE_URL}/hackathon/0N8A3469.jpg`,
+                    `${GCP_BASE_URL}/hackathon/0N8A3502.jpg`,
+                    `${GCP_BASE_URL}/hackathon/0N8A3543.jpg`,
+                    `${GCP_BASE_URL}/hackathon/0N8A3587.jpg`
                 ]);
             } else if (projectId === '(4)') {
                 resolve([
@@ -384,7 +391,7 @@ const GalleryItem: React.FC<GalleryItemProps> = ({ url, imgIndex, totalCount, po
                 initial={{ opacity: 0, x: 50, y: 50, scale: 0.9 }}
                 animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
                 exit={{ opacity: 0, x: -50, y: -50, scale: 0.9 }}
-                transition={{ 
+                transition={{
                     layout: { type: "spring", stiffness: 100, damping: 20 },
                     opacity: { duration: 0.6 },
                     x: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
