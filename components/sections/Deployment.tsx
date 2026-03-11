@@ -161,7 +161,7 @@ export const Deployment = ({ onNavigate, onTogglePause, isActive, isExiting, exi
                 COLLAB
               </h3>
             </div>
-            <h3 className="text-7xl lg:text-9xl font-black text-white uppercase tracking-tighter leading-[0.8] mt-4 md:mt-0">
+            <h3 className="text-7xl lg:text-8xl font-black text-white uppercase tracking-tighter leading-[0.8] mt-4 md:mt-0">
               HACKATHONS
             </h3>
             {/* Corner Accent in Image 2 */}
@@ -173,7 +173,7 @@ export const Deployment = ({ onNavigate, onTogglePause, isActive, isExiting, exi
 
           <div className="flex flex-col xl:flex-row gap-16 items-stretch relative z-10">
             {/* Uncle Sam Poster Box */}
-            <div className="bg-white p-8 flex items-center gap-10 w-full xl:w-fit xl:min-w-[480px] border-b-8 border-r-8 border-white/20">
+            <div className="bg-white p-6 flex items-center gap-6 w-full xl:w-fit xl:min-w-[380px] border-b-8 border-r-8 border-white/20">
               <div className="w-48 h-48 lg:w-56 lg:h-56 shrink-0 bg-[#f30]/5 p-2">
                 <img src="/unclesam.svg" alt="Uncle Sam" className="w-full h-full object-contain" />
               </div>
