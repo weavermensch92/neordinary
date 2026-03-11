@@ -27,7 +27,7 @@ export const Deployment = ({ onNavigate, onTogglePause, isActive, isExiting, exi
                 1. AI <span className="text-accent underline decoration-8 underline-offset-8">HACKATHONS</span>
               </h3>
               <div className="px-8 py-4 bg-black text-accent text-xl font-black tracking-[0.3em] uppercase border-4 border-black text-right">
-                MAX 160 PARTICIPANTS<br />
+                MAX 400+ PARTICIPANTS<br />
                 <span className="text-white">MANDATORY AI USAGE</span>
               </div>
             </div>
@@ -149,34 +149,69 @@ export const Deployment = ({ onNavigate, onTogglePause, isActive, isExiting, exi
         </div>
 
         {/* 3. Global Collaboration Hackathons - Brutalist Grid Box */}
-        <div className="w-full bg-black p-12 lg:p-16 border-8 border-accent relative overflow-hidden text-white flex flex-col xl:flex-row gap-16 items-center lg:items-stretch stagger-item">
-          <div className="xl:w-1/3 flex flex-col justify-center">
-            <h3 className="text-6xl lg:text-7xl font-black text-white uppercase tracking-tighter leading-[0.85] mb-8">
-              3. GLOBAL<br /><span className="text-accent underline decoration-8 underline-offset-8">COLLAB</span><br />HACKATHONS
+        <div className="w-full bg-black p-12 lg:p-16 border-8 border-accent relative overflow-hidden text-white flex flex-col gap-10 stagger-item">
+          
+          {/* Header Area - Stacked & Side-by-side Layout */}
+          <div className="flex flex-col md:flex-row items-start md:items-end gap-x-12 relative z-10">
+            <div className="flex flex-col">
+              <h3 className="text-7xl lg:text-8xl font-black text-white uppercase tracking-tighter leading-[0.8]">
+                GLOBAL
+              </h3>
+              <h3 className="text-7xl lg:text-8xl font-black text-accent uppercase tracking-tighter leading-[0.8] underline decoration-[1rem] underline-offset-[0.5rem]">
+                COLLAB
+              </h3>
+            </div>
+            <h3 className="text-7xl lg:text-9xl font-black text-white uppercase tracking-tighter leading-[0.8] mt-4 md:mt-0">
+              HACKATHONS
             </h3>
+            {/* Corner Accent in Image 2 */}
+            <div className="absolute top-0 right-0 w-4 h-24 bg-white/10 hidden xl:block"></div>
           </div>
 
-          <div className="xl:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-12 border-l-0 xl:border-l-[1rem] border-white/20 xl:pl-16">
-            <div className="flex flex-col gap-8">
-              <div className="bg-white text-black px-4 py-2 text-sm font-black uppercase tracking-widest inline-block w-fit">NEORDINARY HAS COLLABORATED WITH:</div>
-              <ul className="flex flex-col gap-4 text-sm font-black text-white/80 uppercase tracking-widest">
-                <li className="flex items-center gap-4"><div className="w-4 h-4 bg-accent"></div> International AI platforms</li>
-                <li className="flex items-center gap-4"><div className="w-4 h-4 bg-accent"></div> Global digital nomad communities</li>
-                <li className="flex items-center gap-4"><div className="w-4 h-4 bg-accent"></div> Cross-border development networks</li>
-              </ul>
+          {/* Thick Divider Bar */}
+          <div className="w-full h-10 bg-[#333] -mx-16 px-16 relative z-0"></div>
+
+          <div className="flex flex-col xl:flex-row gap-16 items-stretch relative z-10">
+            {/* Uncle Sam Poster Box */}
+            <div className="bg-white p-8 flex items-center gap-10 w-full xl:w-fit xl:min-w-[480px] border-b-8 border-r-8 border-white/20">
+              <div className="w-48 h-48 lg:w-56 lg:h-56 shrink-0 bg-[#f30]/5 p-2">
+                <img src="/unclesam.svg" alt="Uncle Sam" className="w-full h-full object-contain" />
+              </div>
+              <div className="flex flex-col justify-center items-center flex-1">
+                <h4 className="text-4xl lg:text-5xl font-black text-black leading-none text-center tracking-tighter uppercase whitespace-nowrap">
+                  I WANT<br />
+                  <span className="text-5xl lg:text-7xl block my-1">CLAUDE</span>
+                  YOU!
+                </h4>
+              </div>
             </div>
-            <div className="flex flex-col gap-8">
-              <div className="bg-accent text-black px-4 py-2 text-sm font-black uppercase tracking-widest inline-block w-fit">THESE COLLABORATIONS INVOLVED:</div>
-              <ul className="flex flex-col gap-4 text-sm font-black text-accent/80 uppercase tracking-widest">
-                <li className="flex items-center gap-4"><div className="w-4 h-4 border-4 border-accent"></div> Multinational participants</li>
-                <li className="flex items-center gap-4"><div className="w-4 h-4 border-4 border-accent"></div> AI model–mandatory development rules</li>
-                <li className="flex items-center gap-4"><div className="w-4 h-4 border-4 border-accent"></div> Structured API-based product creation</li>
-              </ul>
+
+            {/* Lists Area */}
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-12 border-l-0 lg:border-l-[1rem] border-white/10 lg:pl-12">
+              <div className="flex flex-col gap-8">
+                <div className="bg-white text-black px-4 py-2 text-sm font-black uppercase tracking-widest inline-block w-fit">NEORDINARY HAS COLLABORATED WITH:</div>
+                <ul className="flex flex-col gap-6 text-sm font-black text-white/80 uppercase tracking-widest">
+                  <li className="flex items-start gap-4"><div className="w-4 h-4 bg-accent mt-1 shrink-0"></div> International AI platforms</li>
+                  <li className="flex items-start gap-4"><div className="w-4 h-4 bg-accent mt-1 shrink-0"></div> Global digital nomad communities</li>
+                  <li className="flex items-start gap-4"><div className="w-4 h-4 bg-accent mt-1 shrink-0"></div> Cross-border development networks</li>
+                </ul>
+              </div>
+              <div className="flex flex-col gap-8">
+                <div className="bg-accent text-black px-4 py-2 text-sm font-black uppercase tracking-widest inline-block w-fit">THESE COLLABORATIONS INVOLVED:</div>
+                <ul className="flex flex-col gap-4 text-sm font-black text-accent/80 uppercase tracking-widest">
+                  <li className="flex items-start gap-4"><div className="w-4 h-4 border-4 border-accent mt-1 shrink-0"></div> Multinational participants</li>
+                  <li className="flex items-start gap-4"><div className="w-4 h-4 border-4 border-accent mt-1 shrink-0"></div> AI model–mandatory development rules</li>
+                  <li className="flex items-start gap-4"><div className="w-4 h-4 border-4 border-accent mt-1 shrink-0"></div> Structured API-based product creation</li>
+                </ul>
+              </div>
             </div>
           </div>
+
+          {/* Spacer for bottom bar overlap protection */}
+          <div className="h-24"></div>
 
           <div className="absolute bottom-0 left-0 w-full bg-white text-black px-8 py-4 font-black uppercase tracking-widest text-center md:text-left text-sm lg:text-lg border-t-8 border-accent shadow-[0_-16px_50px_rgba(255,31,31,0.2)]">
-            This demonstrates operational readiness for international AI API integration environments.
+            THIS DEMONSTRATES OPERATIONAL READINESS FOR INTERNATIONAL AI API INTEGRATION ENVIRONMENTS.
           </div>
         </div>
 
