@@ -168,33 +168,33 @@ export const Deployment = ({ onNavigate, onTogglePause, isActive, isExiting, exi
             <div className="absolute top-0 right-0 w-4 h-24 bg-white/10 hidden xl:block"></div>
           </div>
 
-          {/* Thick Divider Bar */}
-          <div className="w-full h-10 bg-[#333] -mx-16 px-16 relative z-0"></div>
+          {/* Thick Divider Bar - Now thin & centered */}
+          <div className="w-full h-px bg-white/20 relative z-0 my-4"></div>
 
           <div className="flex flex-col xl:flex-row gap-16 items-stretch relative z-10">
             {/* Uncle Sam Poster Box */}
-            <div className="bg-white relative w-full xl:w-[400px] aspect-square overflow-hidden flex flex-col stagger-item border-r-[12px] border-b-[12px] border-white/10">
+            <div className="bg-white relative w-full xl:w-[320px] aspect-square overflow-hidden flex flex-col stagger-item border-r-[8px] border-b-[8px] border-white/10">
               {/* Text Area - Top Right */}
-              <div className="absolute top-8 right-8 z-20">
-                <h4 className="text-4xl lg:text-5xl font-black text-black leading-[0.8] text-right tracking-tighter uppercase italic">
+              <div className="absolute top-6 right-6 z-20">
+                <h4 className="text-3xl lg:text-4xl font-black text-black leading-[0.8] text-right tracking-tighter uppercase italic">
                   I WANT<br />
-                  <span className="text-6xl lg:text-8xl block mt-2 mb-1">CLAUDE</span>
+                  <span className="text-5xl lg:text-6xl block mt-1">CLAUDE</span>
                   YOU!
                 </h4>
               </div>
 
               {/* Image Area - Bottom-aligned without padding */}
-              <div className="absolute bottom-0 left-0 w-full h-full z-10 flex items-end">
+              <div className="absolute bottom-0 left-0 w-full h-[85%] z-10 flex items-end">
                 <img 
                   src="/unclesam.svg" 
                   alt="Uncle Sam" 
-                  className="w-[110%] h-auto object-contain object-bottom -ml-[5%] -mb-2" 
+                  className="w-full h-auto object-contain object-bottom" 
                 />
               </div>
             </div>
 
-            {/* Lists Area */}
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-12 border-l-0 lg:border-l-[1rem] border-white/10 lg:pl-12">
+            {/* Lists Area - Vertical line removed */}
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-12">
               <div className="flex flex-col gap-8">
                 <div className="bg-white text-black px-4 py-2 text-sm font-black uppercase tracking-widest inline-block w-fit">NEORDINARY HAS COLLABORATED WITH:</div>
                 <ul className="flex flex-col gap-6 text-sm font-black text-white/80 uppercase tracking-widest">
@@ -213,9 +213,6 @@ export const Deployment = ({ onNavigate, onTogglePause, isActive, isExiting, exi
               </div>
             </div>
           </div>
-
-          {/* Spacer for bottom bar overlap protection */}
-          <div className="h-24"></div>
 
           <div className="absolute bottom-0 left-0 w-full bg-white text-black px-8 py-4 font-black uppercase tracking-widest text-center md:text-left text-sm lg:text-lg border-t-8 border-accent shadow-[0_-16px_50px_rgba(255,31,31,0.2)]">
             THIS DEMONSTRATES OPERATIONAL READINESS FOR INTERNATIONAL AI API INTEGRATION ENVIRONMENTS.
