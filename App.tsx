@@ -11,6 +11,10 @@ import { Deployment } from './components/sections/Deployment';
 import { Bridge } from './components/sections/Bridge';
 import { Proposal } from './components/sections/Proposal';
 import { UMCDataProvider } from './components/umc/lib/UMCDataContext';
+import { createPortal } from 'react-dom';
+import { StudioContentWrapper } from './components/studio/StudioContentWrapper';
+import { UMCOsContentWrapper } from './components/studio/UMCOsContentWrapper';
+import { CMCOsContentWrapper } from './components/studio/CMCOsContentWrapper';
 
 const App: React.FC = () => {
   const boundaryAccumulator = useRef(0);
@@ -25,6 +29,22 @@ const App: React.FC = () => {
   const [exitDirection, setExitDirection] = useState<'left' | 'right'>('left');
   const [isExiting, setIsExiting] = useState(false);
   const [isGlobalUIHidden, setIsGlobalUIHidden] = useState(false);
+
+  // Widget States
+  const [isStudioOpen, setIsStudioOpen] = useState(false);
+  const [isStudioMinimized, setIsStudioMinimized] = useState(false);
+  const [isUmcOsOpen, setIsUmcOsOpen] = useState(false);
+  const [isUmcOsMinimized, setIsUmcOsMinimized] = useState(false);
+  const [isCmcOsOpen, setIsCmcOsOpen] = useState(false);
+  const [isCmcOsMinimized, setIsCmcOsMinimized] = useState(false);
+
+  const isStudioActive = isStudioOpen && !isStudioMinimized;
+  const isUmcOsActive = isUmcOsOpen && !isUmcOsMinimized;
+  const isCmcOsActive = isCmcOsOpen && !isCmcOsMinimized;
+
+  const handleOpenStudio = () => { setIsStudioMinimized(false); setIsStudioOpen(true); };
+  const handleOpenUmc = () => { setIsUmcOsMinimized(false); setIsUmcOsOpen(true); };
+  const handleOpenCmc = () => { setIsCmcOsMinimized(false); setIsCmcOsOpen(true); };
 
   const sections = [
     { id: 'hero', component: Hero, title: 'NEO ORDINARY' },
@@ -324,6 +344,9 @@ const App: React.FC = () => {
                   onNavigate={handleNavClick}
                   onTogglePause={setIsExperiencePaused}
                   onToggleGlobalUI={setIsGlobalUIHidden}
+                  onTriggerStudio={handleOpenStudio}
+                  onTriggerUmc={handleOpenUmc}
+                  onTriggerCmc={handleOpenCmc}
                   isActive={activeSectionIndex === index}
                   isExiting={activeSectionIndex === index && isExiting}
                   exitDirection={exitDirection}
@@ -332,6 +355,57 @@ const App: React.FC = () => {
             );
           })}
         </div>
+
+        {/* Modals & Portal UI (Global) */}
+        {isStudioActive && createPortal(
+          <StudioContentWrapper
+            scrollProgress={1}
+            onFooterReached={() => setIsStudioOpen(false)}
+            onMinimize={() => setIsStudioMinimized(true)}
+          />,
+          document.body
+        )}
+
+        {isUmcOsActive && createPortal(
+          <UMCOsContentWrapper
+            onClose={() => setIsUmcOsOpen(false)}
+            onMinimize={() => setIsUmcOsMinimized(true)}
+          />,
+          document.body
+        )}
+
+        {isCmcOsActive && createPortal(
+          <CMCOsContentWrapper
+            onClose={() => setIsCmcOsOpen(false)}
+            onMinimize={() => setIsCmcOsMinimized(true)}
+          />,
+          document.body
+        )}
+
+        {/* Persistent Widgets (Global) */}
+        {!isGlobalUIHidden && createPortal(
+          <div className="fixed bottom-8 left-8 flex flex-col gap-4 z-[100] pointer-events-none items-start">
+            {!isCmcOsActive && (
+              <button onClick={handleOpenCmc} className="bg-white text-black px-6 py-4 font-black uppercase tracking-[0.3em] border-[8px] border-black hover:bg-black hover:text-white transition-colors duration-300 shadow-[10px_10px_0_0_#E60023] flex items-center gap-4 pointer-events-auto">
+                <div className="w-3 h-3 bg-[#E60023]" />
+                <span>CMC SLIDER</span>
+              </button>
+            )}
+            {!isUmcOsActive && (
+              <button onClick={handleOpenUmc} className="bg-white text-black px-6 py-4 font-black uppercase tracking-[0.3em] border-[8px] border-black hover:bg-black hover:text-white transition-colors duration-300 shadow-[10px_10px_0_0_#3B82F6] flex items-center gap-4 pointer-events-auto">
+                <div className="w-3 h-3 bg-blue-500" />
+                <span>UMC PROJECTS</span>
+              </button>
+            )}
+            {!isStudioActive && (
+              <button onClick={handleOpenStudio} className="bg-white text-black px-6 py-4 font-black uppercase tracking-[0.3em] border-[8px] border-black hover:bg-black hover:text-white transition-colors duration-300 shadow-[10px_10px_0_0_#A855F7] flex items-center gap-4 pointer-events-auto">
+                <div className="w-3 h-3 bg-accent" />
+                <span>NEORDINARY STUDIO</span>
+              </button>
+            )}
+          </div>,
+          document.body
+        )}
 
         <style>{`
           .no-scrollbar::-webkit-scrollbar { display: none; }

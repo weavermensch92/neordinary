@@ -1,11 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, useAnimation, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Building2, MapPin, Database, Zap, Globe, ArrowUpRight, X } from 'lucide-react';
 import { SectionLayout } from './SectionLayout';
-import { StudioContentWrapper } from '../studio/StudioContentWrapper';
-import { UMCOsContentWrapper } from '../studio/UMCOsContentWrapper';
-import { CMCOsContentWrapper } from '../studio/CMCOsContentWrapper';
 
 export const Infrastructure = ({
     onNavigate,
@@ -13,22 +9,22 @@ export const Infrastructure = ({
     onToggleGlobalUI,
     isActive = false,
     isExiting = false,
-    exitDirection = 'left'
+    exitDirection = 'left',
+    onTriggerStudio,
+    onTriggerUmc,
+    onTriggerCmc
 }: {
     onNavigate?: (index: number) => void,
     onTogglePause?: (paused: boolean) => void,
     isExiting?: boolean,
     exitDirection?: 'left' | 'right',
-    onToggleGlobalUI?: (hidden: boolean) => void
+    onToggleGlobalUI?: (hidden: boolean) => void,
+    onTriggerStudio?: () => void,
+    onTriggerUmc?: () => void,
+    onTriggerCmc?: () => void,
+    isActive?: boolean
 }) => {
     const sectionRef = useRef<HTMLElement>(null);
-    const [hasVisitedStudio, setHasVisitedStudio] = useState(false);
-    const [manualOpen, setManualOpen] = useState(false);
-    const [isStudioMinimized, setIsStudioMinimized] = useState(false);
-    const [isUmcOsOpen, setIsUmcOsOpen] = useState(false);
-    const [isUmcOsMinimized, setIsUmcOsMinimized] = useState(false);
-    const [isCmcOsOpen, setIsCmcOsOpen] = useState(false);
-    const [isCmcOsMinimized, setIsCmcOsMinimized] = useState(false);
     const [isAnimationComplete, setIsAnimationComplete] = useState(false);
     const [showPoster, setShowPoster] = useState(false);
 
@@ -37,7 +33,7 @@ export const Infrastructure = ({
             span: "md:col-span-2 md:row-span-2",
             content: (
                 <div
-                    onClick={() => setManualOpen(true)}
+                    onClick={onTriggerStudio}
                     className="w-full h-full bg-black border-[0.25rem] border-white/20 p-12 flex flex-col relative overflow-hidden group min-h-[25rem] cursor-pointer hover:border-accent transition-colors duration-500"
                 >
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
@@ -98,7 +94,7 @@ export const Infrastructure = ({
             span: "md:col-span-1 md:row-span-1",
             content: (
                 <div
-                    onClick={() => setIsUmcOsOpen(true)}
+                    onClick={onTriggerUmc}
                     className="w-full h-full bg-[#0A0A0A] border-4 border-white/5 p-10 flex flex-col items-center justify-center text-center group relative overflow-hidden hover:bg-accent hover:text-black transition-all duration-700 cursor-pointer"
                 >
                     <div className="absolute inset-0 border-r-[1rem] border-accent/20" />
@@ -111,7 +107,7 @@ export const Infrastructure = ({
             span: "md:col-span-1 md:row-span-1",
             content: (
                 <div
-                    onClick={() => setIsCmcOsOpen(true)}
+                    onClick={onTriggerCmc}
                     className="w-full h-full bg-[#0A0A0A] border-4 border-white/5 p-10 flex flex-col items-center justify-center text-center group relative overflow-hidden hover:bg-white hover:text-black transition-all duration-700 cursor-pointer"
                 >
                     <div className="absolute inset-0 border-l-[1rem] border-white/20" />
@@ -154,20 +150,10 @@ export const Infrastructure = ({
         }
     ];
 
-    const isStudioOpen = manualOpen;
-    const isStudioActive = isStudioOpen && !isStudioMinimized;
-    const isUmcOsActive = isUmcOsOpen && !isUmcOsMinimized;
-    const isCmcOsActive = isCmcOsOpen && !isCmcOsMinimized;
-
     useEffect(() => {
-        if (onTogglePause) onTogglePause(isStudioActive || isUmcOsActive || isCmcOsActive || showPoster);
+        if (onTogglePause) onTogglePause(showPoster);
         if (onToggleGlobalUI) onToggleGlobalUI(showPoster);
-    }, [isStudioActive, isUmcOsActive, isCmcOsActive, showPoster, onTogglePause, onToggleGlobalUI]);
-
-    const handleFooterReached = () => {
-        setHasVisitedStudio(true);
-        setManualOpen(false);
-    };
+    }, [showPoster, onTogglePause, onToggleGlobalUI]);
 
     return (
         <SectionLayout
@@ -180,7 +166,7 @@ export const Infrastructure = ({
             exitDirection={exitDirection}
             hideHeader={showPoster}
         >
-            <div className={`relative w-full h-full flex flex-col gap-12 ${isStudioActive || showPoster ? 'blur-xl' : ''}`}>
+            <div className={`relative w-full h-full flex flex-col gap-12 ${showPoster ? 'blur-xl' : ''}`}>
                 <div className={`grid grid-cols-1 md:grid-cols-4 md:grid-rows-3 gap-6 w-full relative z-10 ${showPoster ? 'hidden opacity-0 pointer-events-none' : ''}`}>
                     {gridItems.map((item, index) => (
                         <div key={index} className={`${item.span} stagger-item`}>
@@ -217,57 +203,6 @@ export const Infrastructure = ({
                     </motion.div>
                 )}
             </AnimatePresence>
-
-            {/* Modals & Portal UI */}
-            {isStudioActive && createPortal(
-                <StudioContentWrapper
-                    scrollProgress={1}
-                    onFooterReached={handleFooterReached}
-                    onMinimize={() => setIsStudioMinimized(true)}
-                />,
-                document.body
-            )}
-
-            {isUmcOsActive && createPortal(
-                <UMCOsContentWrapper
-                    onClose={() => setIsUmcOsOpen(false)}
-                    onMinimize={() => setIsUmcOsMinimized(true)}
-                />,
-                document.body
-            )}
-
-            {isCmcOsActive && createPortal(
-                <CMCOsContentWrapper
-                    onClose={() => setIsCmcOsOpen(false)}
-                    onMinimize={() => setIsCmcOsMinimized(true)}
-                />,
-                document.body
-            )}
-
-            {/* Persistent Widgets */}
-            {!showPoster && createPortal(
-                <div className="fixed bottom-8 left-8 flex flex-col gap-4 z-[100] pointer-events-none items-start">
-                    {!isCmcOsActive && (
-                        <button onClick={() => { setIsCmcOsMinimized(false); setIsCmcOsOpen(true); }} className="bg-white text-black px-6 py-4 font-black uppercase tracking-[0.3em] border-[8px] border-black hover:bg-black hover:text-white transition-colors duration-300 shadow-[10px_10px_0_0_#E60023] flex items-center gap-4 pointer-events-auto">
-                            <div className="w-3 h-3 bg-[#E60023]" />
-                            <span>CMC SLIDER</span>
-                        </button>
-                    )}
-                    {!isUmcOsActive && (
-                        <button onClick={() => { setIsUmcOsMinimized(false); setIsUmcOsOpen(true); }} className="bg-white text-black px-6 py-4 font-black uppercase tracking-[0.3em] border-[8px] border-black hover:bg-black hover:text-white transition-colors duration-300 shadow-[10px_10px_0_0_#3B82F6] flex items-center gap-4 pointer-events-auto">
-                            <div className="w-3 h-3 bg-blue-500" />
-                            <span>UMC PROJECTS</span>
-                        </button>
-                    )}
-                    {!isStudioActive && (
-                        <button onClick={() => { setIsStudioMinimized(false); setManualOpen(true); }} className="bg-white text-black px-6 py-4 font-black uppercase tracking-[0.3em] border-[8px] border-black hover:bg-black hover:text-white transition-colors duration-300 shadow-[10px_10px_0_0_#A855F7] flex items-center gap-4 pointer-events-auto">
-                            <div className="w-3 h-3 bg-accent" />
-                            <span>NEORDINARY STUDIO</span>
-                        </button>
-                    )}
-                </div>,
-                document.body
-            )}
         </SectionLayout>
     );
 };

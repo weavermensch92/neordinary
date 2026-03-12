@@ -2,7 +2,23 @@ import React from 'react';
 import { SectionLayout } from './SectionLayout';
 import { ArrowUpRight } from 'lucide-react';
 
-export const Evaluation = ({ onNavigate, onTogglePause, isActive, isExiting, exitDirection }: { onNavigate?: (index: number) => void, onTogglePause?: (paused: boolean) => void, isActive?: boolean, isExiting?: boolean, exitDirection?: 'left' | 'right' }) => {
+export const Evaluation = ({
+  onNavigate,
+  onTogglePause,
+  isActive,
+  isExiting,
+  exitDirection,
+  onTriggerUmc,
+  onTriggerCmc
+}: {
+  onNavigate?: (index: number) => void,
+  onTogglePause?: (paused: boolean) => void,
+  isActive?: boolean,
+  isExiting?: boolean,
+  exitDirection?: 'left' | 'right',
+  onTriggerUmc?: () => void,
+  onTriggerCmc?: () => void
+}) => {
   return (
     <SectionLayout
       id="evaluation-section"
@@ -55,7 +71,7 @@ export const Evaluation = ({ onNavigate, onTogglePause, isActive, isExiting, exi
             </div>
 
             <button
-              onClick={() => window.dispatchEvent(new CustomEvent('trigger-umc'))}
+              onClick={onTriggerUmc}
               className="mt-20 bg-accent border-[0.75rem] border-black py-8 px-10 flex items-center justify-between md:col-span-2 group/stat hover:bg-white transition-colors duration-300 relative z-10 w-full text-left"
             >
               <span className="text-2xl font-black tracking-[0.3em] uppercase">VIEW ALLIANCE DETAILS</span>
@@ -97,7 +113,7 @@ export const Evaluation = ({ onNavigate, onTogglePause, isActive, isExiting, exi
             </div>
 
             <button
-              onClick={() => window.dispatchEvent(new CustomEvent('trigger-cmc'))}
+              onClick={onTriggerCmc}
               className="mt-20 bg-accent border-[0.75rem] border-black py-8 px-10 flex items-center justify-between group/stat hover:bg-white hover:text-black transition-colors duration-300 relative z-10 w-full text-left"
             >
               <span className="text-2xl font-black tracking-[0.3em] uppercase">VIEW COLLECTIVE PORTFOLIO</span>
