@@ -71,14 +71,14 @@ export const Proposal = ({ onNavigate, onTogglePause, isActive, isExiting, exitD
                     </button>
 
                     <button
-                        onClick={() => exportToPDF()}
-                        className="group flex flex-col xl:flex-row flex-1 items-start xl:items-center justify-between p-12 lg:p-16 bg-[#111] border-[0.75rem] border-white hover:bg-white hover:border-black transition-colors duration-500 shadow-[1.25rem_1.25rem_0_0_rgba(168,85,247,1)] hover:translate-x-4 hover:-translate-y-4 stagger-item"
+                        disabled
+                        className="group flex flex-col xl:flex-row flex-1 items-start xl:items-center justify-between p-12 lg:p-16 bg-[#111] border-[0.75rem] border-white/20 opacity-40 cursor-not-allowed shadow-none stagger-item"
                     >
                         <div className="flex flex-col items-start text-left">
-                            <span className="text-white group-hover:text-black font-black text-6xl lg:text-[6rem] uppercase tracking-tighter leading-[0.85] mb-8">DOWNLOAD<br />CATALOG</span>
-                            <span className="text-base lg:text-lg text-accent group-hover:text-black/60 uppercase font-black tracking-[0.4em] bg-white/10 group-hover:bg-black/10 px-6 py-3 border-2 border-transparent group-hover:border-black/30">DOWNLOAD PDF RESOURCES</span>
+                            <span className="text-white font-black text-6xl lg:text-[6rem] uppercase tracking-tighter leading-[0.85] mb-8 text-white/40">DOWNLOAD<br />CATALOG</span>
+                            <span className="text-base lg:text-lg text-white/20 uppercase font-black tracking-[0.4em] bg-white/5 px-6 py-3 border-2 border-white/10">PREPARING RESOURCES...</span>
                         </div>
-                        <Download className="text-white group-hover:text-black mt-12 xl:mt-0 transition-transform group-hover:translate-y-8" size={140} />
+                        <Download className="text-white/20 mt-12 xl:mt-0" size={140} />
                     </button>
                 </div>
 
@@ -88,9 +88,12 @@ export const Proposal = ({ onNavigate, onTogglePause, isActive, isExiting, exitD
                         <div className="px-6 py-2 bg-white text-black font-black text-xl">2026</div>
                         <span className="text-xl">ECOSYSTEM GROWTH PARTNERSHIP</span>
                     </div>
-                    <div className="flex items-center gap-6 group/mail cursor-pointer bg-white/5 hover:bg-white p-6 border-4 border-transparent hover:border-black transition-all">
+                    <div
+                        onClick={() => setIsMeetingModalOpen(true)}
+                        className="flex items-center gap-6 group/mail cursor-pointer bg-white/5 hover:bg-white p-6 border-4 border-transparent hover:border-black transition-all"
+                    >
                         <Mail size={32} className="text-white group-hover/mail:text-black" />
-                        <span className="text-white group-hover/mail:text-black tracking-[0.4em] text-lg">CONTACT@SOFTSQUARED.COM</span>
+                        <span className="text-white group-hover/mail:text-black tracking-[0.4em] text-lg uppercase">weaver.jeong@softsquared.com</span>
                     </div>
                 </div>
             </div>
