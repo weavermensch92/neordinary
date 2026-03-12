@@ -181,8 +181,6 @@ export const LoadingSequence: React.FC<LoadingSequenceProps> = ({ onComplete, co
         <ServicesSection containerRef={containerRef} />
         <WorkSection containerRef={containerRef} />
         <ValuesSection containerRef={containerRef} />
-        <TeamIntroSection containerRef={containerRef} />
-        <TeamSection containerRef={containerRef} />
         <Footer />
       </div>
     </div>
